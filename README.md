@@ -15,3 +15,7 @@ Open `index.html` directly, or visit https://melvinmmelo.github.io/pickleballque
 Use **Remove** beside a waiting player to remove them from the list and queue after confirmation. For an on-court player, first use **Finish & free court**. Removal can be undone. **Undo last action** reverses one change until reload. **Reset session** clears the players, counts, and courts, leaving one empty court.
 
 Data saves in localStorage in the current browser. Existing single-court sessions migrate to Court 01 with game counts and queue order preserved. Data does not sync across devices, browsers, or between the local file and hosted site. Clearing browser storage may erase the session. A warning appears when saving is unavailable.
+
+## Custom next game
+
+Open **Custom lineup** under **Up next**, select four distinct waiting players (first two on Team A, last two on Team B), and choose **Use lineup**. The next court started or rotated uses that lineup once; the remaining players retain their queue order. On-court players cannot be selected. **Use normal queue** cancels the override. Skipping a player clears it, as does removing a selected player. The selection saves across reloads and supports Undo. Finishing and freeing a court keeps the planned lineup for the next start.
