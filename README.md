@@ -19,3 +19,9 @@ Data saves in localStorage in the current browser. Existing single-court session
 ## Custom next game
 
 Open **Custom lineup** under **Up next**, select four distinct waiting players (first two on Team A, last two on Team B), and choose **Use lineup**. The next court started or rotated uses that lineup once; the remaining players retain their queue order. On-court players cannot be selected. **Use normal queue** cancels the override. Skipping a player clears it, as does removing a selected player. The selection saves across reloads and supports Undo. Finishing and freeing a court keeps the planned lineup for the next start.
+
+## Optional session QR check-in
+
+The QR feature is prepared and requires the one-time [Supabase setup](supabase/SETUP.md). Once configured, use **Enable QR check-in** on the hosted site. Arriving players scan the QR and enter a nickname with no login. Keep the organizer page open: new arrivals are appended automatically, usually within five seconds. Close check-in when finished; each QR also expires after 12 hours. Local manual entry remains available without Supabase or internet.
+
+Development checks: run `npm ci && npm test` with Google Chrome installed. Tests use a local PostgreSQL-compatible PGlite database and isolated browsers; no live Supabase account or production player data is used.

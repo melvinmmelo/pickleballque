@@ -85,5 +85,9 @@ $('reset').onclick=()=>{if(confirm('Reset this session? This clears all players 
 window.addEventListener('storage',e=>{if(e.key!==KEY)return;try{const incoming=e.newValue?migrate(JSON.parse(e.newValue)):fresh();if(valid(incoming)){state=incoming;previous=null;render();}}catch{}});
 render();
 </script>
+<script src="config.js"></script>
+<script src="vendor/qrcode.js"></script>
+<script src="checkin-api.js"></script>
+<script src="checkin.js"></script>
 </body>
 </html>

@@ -1,0 +1,11 @@
+{
+  "name": "sideout-queue",
+  "private": true,
+  "scripts": {
+    "test": "node tests/checkin-database.cjs && node tests/checkin-browser.cjs && node tests/queue-browser.cjs"
+  },
+  "devDependencies": {
+    "@electric-sql/pglite": "0.5.15",
+    "playwright": "1.65.0"
+  }
+}
