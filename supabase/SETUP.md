@@ -1,6 +1,6 @@
 # Activate optional QR check-in
 
-The app works locally without this setup. QR check-in is prepared but disabled until a Supabase project is connected.
+The hosted app is connected to project `pickleballque` (`bsvuxfocoroiaxhrzucb`, Singapore) as of 2026-11-08. The instructions below describe setup for a separate deployment. Manual queuing works locally without this setup.
 
 1. Create a Supabase project on the Free plan.
 2. Run `session-checkin.sql` in the project's SQL Editor. It creates private tables and four narrowly scoped RPC functions. No direct table access is granted to visitors.
