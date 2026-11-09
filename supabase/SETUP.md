@@ -18,3 +18,7 @@ Close check-in before resetting. Closing first rejects new arrivals and then imp
 The migration purges sessions more than seven days past expiry whenever a new session is created. There is a global 500-session capacity guard. This no-login flow is intended for small trusted groups: anyone with a QR can submit nicknames. Close a QR if it is shared beyond the intended group. A public large-scale rollout would require additional request throttling/CAPTCHA for anonymous session creation.
 
 Free Supabase projects can pause after low activity. Resume the project in Supabase before using QR check-in again. Manual local queuing is unaffected.
+
+## Session archives
+
+`session-archives.sql` was added on 2026-11-09. It creates a separate private archive table plus save/list/get functions protected by a random per-browser archive key. Only the key hash is stored on the server. Archive snapshots exclude check-in secrets and are retained independently of QR expiry. This is a manual snapshot feature, not continuous backup. It does not store individual match history beyond the current state and accumulated counts.
