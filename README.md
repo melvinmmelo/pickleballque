@@ -16,9 +16,11 @@ Use **Remove** beside a waiting player to remove them from the list and queue af
 
 Data saves in localStorage in the current browser. Existing single-court sessions migrate to Court 01 with game counts and queue order preserved. Data does not sync across devices, browsers, or between the local file and hosted site. Clearing browser storage may erase the session. A warning appears when saving is unavailable.
 
-## Custom next game
+## Custom lineup at the back
 
-Open **Custom lineup** under **Up next**, select four distinct waiting players (first two on Team A, last two on Team B), and choose **Use lineup**. The next court started or rotated uses that lineup once; the remaining players retain their queue order. On-court players cannot be selected. **Use normal queue** cancels the override. Skipping a player clears it, as does removing a selected player. The selection saves across reloads and supports Undo. Finishing and freeing a court keeps the planned lineup for the next start.
+Open **Custom lineup**, select four distinct waiting players (first two on Team A, last two on Team B), then choose **Queue lineup last**. Those four move to the back as a group; earlier waiting players go first. The chosen teams stay together until their turn. If fewer than four players remain ahead, they wait for returning players or new arrivals to complete their game. The custom group does not jump ahead. Later arrivals otherwise join behind the group.
+
+**Cancel grouping** releases the grouping without changing current queue positions; Undo reverses the last action. Skipping clears the grouping, as does removing one of the selected players. The pending group survives reloads and other games starting, and clears when its own game starts.
 
 ## Optional session QR check-in
 
