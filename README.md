@@ -26,7 +26,7 @@ Open **Custom lineup**, select four distinct waiting players (first two on Team 
 
 QR check-in is connected to Supabase on the hosted site. For a separate deployment, follow the [Supabase setup](supabase/SETUP.md). Use **Enable QR check-in** on the hosted site. Arriving players scan the QR and enter a nickname with no login. Keep the organizer page open: new arrivals are appended automatically, usually within five seconds. Close check-in when finished; each QR also expires after 12 hours. Local manual entry remains available without Supabase or internet.
 
-Development checks: run `npm ci && npm test` with Google Chrome installed. Tests use a local PostgreSQL-compatible PGlite database and isolated browsers; no live Supabase account or production player data is used.
+Development checks: run `npm ci && npm test` with Google Chrome installed. When you change a script or stylesheet, bump its `?v=` value in `index.html`, `player.html`, and `join.html` so browsers do not combine a new page with a stale cached script. Tests use a local PostgreSQL-compatible PGlite database and isolated browsers; no live Supabase account or production player data is used.
 
 ## Save session history
 
@@ -44,6 +44,6 @@ Players who check in through the player page receive a private device key that l
 
 The organizer must keep the session page open and visible to publish status. Anyone with the session link can view nicknames, game counts, queue positions, and court assignments. Organizer credentials and guest request credentials are never included in the public view. Player controls cannot start or end games, remove players, or approve requests. Closed/expired QR sessions show the last shared state and reject new check-ins or requests.
 
-For a separate deployment, also run `supabase/player-page.sql` after the check-in migration.
+For a separate deployment, also run `supabase/player-page.sql` after the check-in migration, then `supabase/nickname-hardening.sql`. The hardening file rejects nicknames with no visible characters (for example a lone no-break space). It is safe to re-run and must also be applied once to an existing project.
 
 Each player has **two approved custom lineups per session**. An approved lineup consumes one allowance for every selected player, whether requested by a player or set by the organizer. Declined requests do not consume allowances. Canceling grouping, skipping, or undoing an approval does not refund allowances. Resetting the live session starts fresh counts. The organizer roster shows usage and the player view shows remaining allowances. Shared-session limits are checked atomically by Supabase, including overlapping requests and retries.

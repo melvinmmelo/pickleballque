@@ -28,7 +28,10 @@ const KEY='sideout-queue-v1';
 const fresh=()=>({players:[],queue:[],courts:[{id:1,current:[]}],completed:0});
 let state=fresh(),previous=null;
 const $=id=>document.getElementById(id);
-function migrate(s){if(s&&!s.courts&&Array.isArray(s.current)){s.courts=[{id:1,current:s.current}];delete s.current;}if(s&&Array.isArray(s.lineup)&&s.lineup.length===4&&Array.isArray(s.queue)&&!s.lineupAtBack){s.queue=s.queue.filter(id=>!s.lineup.includes(id)).concat(s.lineup);s.lineupAtBack=true;}return s;}
+// Nicknames must contain a visible character. Check-ins arrive from other devices, so never trust them to be clean.
+const cleanName=s=>String(s??'').replace(/\s+/g,' ').trim(),visibleName=s=>/[^\s\p{Cc}\p{Cf}]/u.test(s);
+function repairNames(s){const list=Array.isArray(s?.players)?s.players.filter(p=>p&&typeof p.name==='string'):[],taken=new Set(list.map(p=>p.name.toLocaleLowerCase()));let n=1;for(const p of list)if(!visibleName(p.name)){while(taken.has('player '+n))n++;p.name='Player '+n;taken.add('player '+n);}return s;}
+function migrate(s){repairNames(s);if(s&&!s.courts&&Array.isArray(s.current)){s.courts=[{id:1,current:s.current}];delete s.current;}if(s&&Array.isArray(s.lineup)&&s.lineup.length===4&&Array.isArray(s.queue)&&!s.lineupAtBack){s.queue=s.queue.filter(id=>!s.lineup.includes(id)).concat(s.lineup);s.lineupAtBack=true;}return s;}
 function valid(s){
 if(!s||!Array.isArray(s.players)||!Array.isArray(s.queue)||!Array.isArray(s.courts)||!s.courts.length||!Number.isInteger(s.completed)||s.completed<0)return false;
 if(!s.players.every(p=>p&&typeof p.id==='string'&&typeof p.name==='string'&&p.name.trim()&&Number.isInteger(p.games)&&p.games>=0))return false;
@@ -37,7 +40,7 @@ if(s.lineup!==undefined&&(!Array.isArray(s.lineup)||(s.lineup.length!==0&&s.line
 const ids=s.players.map(p=>p.id),all=[...s.queue,...s.courts.flatMap(c=>c.current)];
 return new Set(ids).size===ids.length&&all.length===ids.length&&new Set(all).size===ids.length&&all.every(id=>ids.includes(id))&&(s.skipped===undefined||(Array.isArray(s.skipped)&&s.skipped.every(id=>ids.includes(id))&&new Set(s.skipped).size===s.skipped.length));
 }
-try{const saved=localStorage.getItem(KEY);if(saved){const parsed=migrate(JSON.parse(saved));if(!valid(parsed))throw Error('Invalid saved queue');state=parsed;}}catch(e){$('notice').hidden=false;$('notice').textContent='Saved data could not be loaded. This page is starting with an empty queue.';}
+try{const saved=localStorage.getItem(KEY);if(saved){const parsed=migrate(JSON.parse(saved));if(!valid(parsed))throw Error('Invalid saved queue');state=parsed;}}catch(e){let kept=false;try{const raw=localStorage.getItem(KEY);if(raw){localStorage.setItem(KEY+'-unreadable',raw);kept=true;}}catch{}$('notice').hidden=false;$('notice').textContent='Saved data could not be loaded. This page is starting with an empty queue.'+(kept?' The unreadable copy was kept in this browser as '+KEY+'-unreadable.':'');}
 function persist(){try{localStorage.setItem(KEY,JSON.stringify(state));$('save-status').textContent='● Saved on this browser';}catch(e){$('save-status').textContent='⚠ Changes are not saved';$('notice').hidden=false;$('notice').textContent='Browser storage is unavailable or full. Keep this page open: changes will be lost on refresh.';}}
 function change(fn,message){previous=JSON.parse(JSON.stringify(state));fn();persist();render();$('announcement').textContent=message;}
 function node(tag,cls,text){const el=document.createElement(tag);if(cls)el.className=cls;if(text!==undefined)el.textContent=text;return el;}
@@ -73,18 +76,23 @@ if(nextPlayers(returning).length<4){const empty=node('div','empty',`Waiting for 
 const roster=$('roster');roster.replaceChildren();
 if(!state.players.length)roster.append(node('div','empty','Your crew goes here. Add the first nickname.'));
 const ordered=[...state.courts.flatMap(c=>c.current),...nextOrder()];ordered.forEach(id=>{const p=player(id),playing=state.courts.find(c=>c.current.includes(id)),row=node('div','row'),person=node('div','person'),count=node('div','count',String(p.games));person.append(node('div','name',p.name),node('div','status',(playing?`Court ${String(playing.id).padStart(2,'0')}`:`Queue #${nextOrder().indexOf(id)+1}`)+` · Custom ${p.customUsed||0}/2`));count.append(node('small','','games'));const remove=node('button','remove','Remove');remove.type='button';remove.setAttribute('aria-label',`Remove ${p.name}`);remove.title=playing?'Use Finish & free court before removing this player':'Remove player';remove.disabled=playing;remove.onclick=()=>{if(confirm(`Remove ${p.name} and their game count from this session?`))change(()=>{if((state.lineup||[]).includes(id))state.lineup=[];state.queue=state.queue.filter(x=>x!==id);state.players=state.players.filter(x=>x.id!==id);state.skipped=(state.skipped||[]).filter(x=>x!==id);},`${p.name} removed.`);};row.append(node('div','avatar',p.name.slice(0,2).toUpperCase()),person,count,remove);roster.append(row);});
-const fields=$('lineup-fields');fields.replaceChildren();
-for(let i=0;i<4;i++){const label=node('label','',`${i<2?'Team A':'Team B'} · Player ${i%2+1}`),select=node('select');select.name=`slot${i}`;select.required=true;select.setAttribute('aria-label',`Lineup player ${i+1}`);const placeholder=node('option','','Choose player');placeholder.value='';select.append(placeholder);nextOrder([],false).forEach(id=>{const option=node('option','',player(id).name);option.value=id;option.disabled=(player(id).customUsed||0)>=2;if(option.disabled)option.textContent+=' · limit reached';select.append(option);});select.value=(state.lineup||[])[i]||'';label.append(select);fields.append(label);}
+const fields=$('lineup-fields'),draft=$('lineup-editor').open?Array.from(fields.querySelectorAll('select'),s=>s.value):[];fields.replaceChildren();
+for(let i=0;i<4;i++){const label=node('label','',`${i<2?'Team A':'Team B'} · Player ${i%2+1}`),select=node('select');select.name=`slot${i}`;select.required=true;select.setAttribute('aria-label',`Lineup player ${i+1}`);const placeholder=node('option','','Choose player');placeholder.value='';select.append(placeholder);nextOrder([],false).forEach(id=>{const option=node('option','',player(id).name);option.value=id;option.disabled=(player(id).customUsed||0)>=2;if(option.disabled)option.textContent+=' · limit reached';select.append(option);});select.value=draft[i]||(state.lineup||[])[i]||'';label.append(select);fields.append(label);}
 $('save-lineup').disabled=state.queue.length<4;$('clear-lineup').disabled=!(state.lineup||[]).length;
 $('lineup-status').textContent=(state.lineup||[]).length?'Custom group queued last · Earlier players go first; the four stay together.':state.queue.length<4?'Custom lineup needs four waiting players.':'Normal queue · Skip clears a custom lineup.';
 $('lineup-error').textContent='';
 $('undo').disabled=!previous;
 }
-$('add-form').onsubmit=e=>{e.preventDefault();const input=$('nickname'),name=input.value.trim().replace(/\s+/g,' ');if(!name){input.setCustomValidity('Enter a nickname.');input.reportValidity();return;}if(state.players.some(p=>p.name.toLocaleLowerCase()===name.toLocaleLowerCase())){input.setCustomValidity('That nickname is already in the queue. Use a unique nickname.');input.reportValidity();return;}change(()=>{const id=globalThis.crypto?.randomUUID?.()||`${Date.now()}-${Math.random()}`;state.players.push({id,name,games:0});state.queue.push(id);},`${name} joined the queue.`);input.value='';input.focus();};
+$('add-form').onsubmit=e=>{e.preventDefault();const input=$('nickname'),name=cleanName(input.value);if(!visibleName(name)){input.setCustomValidity('Enter a nickname.');input.reportValidity();return;}if(state.players.some(p=>p.name.toLocaleLowerCase()===name.toLocaleLowerCase())){input.setCustomValidity('That nickname is already in the queue. Use a unique nickname.');input.reportValidity();return;}change(()=>{const id=globalThis.crypto?.randomUUID?.()||`${Date.now()}-${Math.random()}`;state.players.push({id,name,games:0});state.queue.push(id);},`${name} joined the queue.`);input.value='';input.focus();};
 $('nickname').oninput=()=>$('nickname').setCustomValidity('');
 function play(courtId,rotate=true){const c=state.courts.find(c=>c.id===courtId);if(!c||(!c.current.length&&nextPlayers().length<4))return;
 change(()=>{if(c.current.length){c.current.forEach(id=>player(id).games++);state.completed++;}state.queue=nextOrder(c.current,rotate);c.current=[];if(rotate&&nextPlayers().length===4){c.current=state.queue.splice(0,4);if((state.lineup||[]).some(id=>c.current.includes(id)))state.lineup=[];}state.skipped=(state.skipped||[]).filter(id=>!state.queue.includes(id)&&!c.current.includes(id));},rotate?'Court updated. The queue is ready for the next available game.':'Game counted. Court is now available.');}
 $('lineup-form').onsubmit=async e=>{e.preventDefault();const chosen=Array.from($('lineup-fields').querySelectorAll('select'),s=>s.value);if(chosen.length!==4||new Set(chosen).size!==4||chosen.some(id=>!state.queue.includes(id))){$('lineup-error').textContent='Choose four different waiting players.';return;}if(await window.approveCustomLineup(chosen))$('lineup-editor').open=false;};
+// Local-only approval. checkin.js replaces this with the shared-session version; keeping a default here means
+// the core queue still works if that optional script fails to load or a stale cached copy is served.
+window.approveCustomLineup=async chosen=>{if(!chosen.every(id=>(player(id).customUsed||0)<2)){$('lineup-error').textContent='Choose four waiting players with custom lineups remaining.';return false;}
+change(()=>{state.queue=nextOrder([],false).filter(id=>!chosen.includes(id)).concat(chosen);state.lineup=[...chosen];state.lineupAtBack=true;state.skipped=(state.skipped||[]).filter(id=>!chosen.includes(id));for(const id of chosen)player(id).customUsed=(player(id).customUsed||0)+1;},'Custom lineup approved and queued last.');
+for(const old of previous.players){const now=player(old.id);if(now)old.customUsed=now.customUsed||0;}return true;};
 $('clear-lineup').onclick=()=>change(()=>{state.lineup=[];},'Grouping canceled. Current queue positions kept.');
 $('add-court').onclick=()=>change(()=>{state.courts.push({id:Math.max(...state.courts.map(c=>c.id))+1,current:[]});},'Court added.');
 $('undo').onclick=()=>{if(!previous)return;state=previous;previous=null;persist();render();$('announcement').textContent='Last action undone.';};
@@ -92,10 +100,11 @@ $('reset').onclick=()=>{if(confirm('Reset this session? This clears all players 
 window.addEventListener('storage',e=>{if(e.key!==KEY)return;try{const incoming=e.newValue?migrate(JSON.parse(e.newValue)):fresh();if(valid(incoming)){state=incoming;previous=null;render();}}catch{}});
 render();
 </script>
-<script src="config.js"></script>
+<!-- Bump ?v= whenever these files change so browsers never pair this page with a stale cached script. -->
+<script src="config.js?v=2026-11-09b"></script>
 <script src="vendor/qrcode.js"></script>
-<script src="checkin-api.js"></script>
-<script src="checkin.js"></script>
-<script src="archives.js"></script>
+<script src="checkin-api.js?v=2026-11-09b"></script>
+<script src="checkin.js?v=2026-11-09b"></script>
+<script src="archives.js?v=2026-11-09b"></script>
 </body>
 </html>
