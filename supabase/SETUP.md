@@ -22,3 +22,9 @@ Free Supabase projects can pause after low activity. Resume the project in Supab
 ## Session archives
 
 `session-archives.sql` was added on 2026-11-09. It creates a separate private archive table plus save/list/get functions protected by a random per-browser archive key. Only the key hash is stored on the server. Archive snapshots exclude check-in secrets and are retained independently of QR expiry. This is a manual snapshot feature, not continuous backup. It does not store individual match history beyond the current state and accumulated counts.
+
+## Live player view and request queue
+
+`player-page.sql` adds an allowlisted public state projection, device-verified player request credentials, and a private request inbox. `sideout_publish` and organizer decision/list RPCs require the existing organizer secret. Public view access requires the unguessable session link. Request RPCs additionally require the player's private device key, which is only issued by a new `sideout_join_player` check-in. Old check-ins remain compatible but cannot acquire another player's request key. Requests include the submitting player and three distinct currently waiting players, with one pending request per player and a 200-request session cap. The organizer rechecks current availability on approval.
+
+The player-page migration also maintains per-player custom-lineup counts and an idempotent approval ledger. Each approval charges all four players, at most twice per session. Organizer manual lineups use the same server path while QR sharing is enabled; local-only lineups enforce the same limit in browser state. Publishing an older state cannot lower server counts. QR renewal seeds the new shared session with the existing live-session usage.

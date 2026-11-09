@@ -1,12 +1,12 @@
 'use strict';
 (()=>{
 const panel=document.createElement('section');panel.className='card';panel.style.marginBottom='22px';
-panel.innerHTML='<div class="card-head"><h2>Session QR check-in <span class="pill">Optional</span></h2><button id="share-start" class="dark">Enable QR check-in</button></div><p id="share-message" role="status"></p><div id="share-details" hidden><div id="share-qr" style="margin:18px 0"></div><label for="share-link">Player join link</label><input id="share-link" readonly style="margin:8px 0"><button id="share-copy">Copy link</button> <button id="share-stop" class="danger">Close check-in</button><p class="helper">Keep this organizer page open to receive arrivals. Players join automatically, usually within 5 seconds. QR expires after 12 hours. Only share the player join link.</p></div>';
-document.querySelector('.layout').before(panel);
+panel.innerHTML='<div class="card-head"><h2>Session QR check-in <span class="pill">Optional</span></h2><button id="share-start" class="dark">Enable QR check-in</button></div><p id="share-message" role="status"></p><div id="share-details" hidden><div id="share-qr" style="margin:18px 0"></div><label for="share-link">Player join link</label><input id="share-link" readonly style="margin:8px 0"><button id="share-copy">Copy link</button> <a id="share-player" target="_blank" rel="noopener">Open player page</a> <button id="share-stop" class="danger">Close check-in</button><p class="helper">Keep this organizer page open to receive arrivals. Players join automatically, usually within 5 seconds. QR expires after 12 hours. Share this link for live game status and lineup requests. Anyone with the link can view nicknames and game counts.</p></div>';
+document.querySelector('.layout').before(panel);const requestsPanel=node('section','card');requestsPanel.style.marginBottom='22px';requestsPanel.innerHTML='<h2>Player lineup requests</h2><p class="helper">Approve to queue the selected four last. Finish or cancel any existing custom group first.</p><div id="player-requests"></div>';panel.after(requestsPanel);requestsPanel.hidden=true;
 const message=text=>$('share-message').textContent=text;
 let busy=false;
-function show(){const shared=state.checkin;$('share-start').hidden=!!shared;$('share-details').hidden=!shared;$('share-start').disabled=!CheckinAPI.configured();if(!shared){message(CheckinAPI.configured()?'Enable when you want players to scan and join. Manual entry always works.':'QR check-in needs the one-time Supabase connection. Manual entry is ready to use.');return;}
-const url=new URL('join.html',location.href);url.hash=shared.id;$('share-link').value=url.href;
+function show(){const shared=state.checkin;if(!shared)requestsPanel.hidden=true;$('share-start').hidden=!!shared;$('share-details').hidden=!shared;$('share-start').disabled=!CheckinAPI.configured();if(!shared){message(CheckinAPI.configured()?'Enable when you want players to scan and join. Manual entry always works.':'QR check-in needs the one-time Supabase connection. Manual entry is ready to use.');return;}
+const url=new URL('player.html',location.href);url.hash=shared.id;$('share-link').value=url.href;$('share-player').href=url.href;
 const qr=qrcode(0,'M');qr.addData(url.href);qr.make();$('share-qr').innerHTML=qr.createSvgTag({cellSize:5,margin:20,scalable:true});const svg=$('share-qr').firstElementChild;svg.style.width='240px';svg.style.maxWidth='100%';svg.setAttribute('aria-label','Scan to join this session');svg.setAttribute('role','img');
 message('Check-in enabled. Waiting for arrivals.');}
 $('share-start').onclick=async()=>{if(busy)return;if(location.protocol==='file:'){message('Open the GitHub Pages website to enable QR check-in. A local file link cannot be opened on other phones.');return;}
@@ -15,15 +15,34 @@ try{const id=crypto.randomUUID(),owner=crypto.randomUUID().replaceAll('-','')+cr
 // Ensure browser storage works before creating a remote session.
 localStorage.setItem('sideout-storage-test','1');localStorage.removeItem('sideout-storage-test');
 const result=await CheckinAPI.call('create',{p_session:id,p_owner:owner,p_players:state.players.map(p=>({id:p.id,name:p.name}))});
-state.checkin={id,owner,seen:state.players.map(p=>p.id),expiresAt:result.expiresAt};previous=null;persist();render();show();
+state.checkin={id,owner,seen:state.players.map(p=>p.id),expiresAt:result.expiresAt};previous=null;persist();render();show();await publish(state.checkin);
 }catch(e){message(e.message);}finally{busy=false;$('share-start').disabled=!CheckinAPI.configured();}};
 async function poll(){if(busy||!state.checkin||!CheckinAPI.configured()||document.hidden)return;busy=true;const shared=state.checkin;
 try{const result=await CheckinAPI.call('poll',{p_session:shared.id,p_owner:shared.owner});if(state.checkin!==shared)return;
 let changed=false;for(const arrival of result.arrivals){if(shared.seen.includes(arrival.id))continue;
 if(!state.players.some(p=>p.id===arrival.id||p.name.toLocaleLowerCase()===arrival.name.toLocaleLowerCase())){state.players.push({id:arrival.id,name:arrival.name,games:0});state.queue.push(arrival.id);}shared.seen.push(arrival.id);changed=true;}
 if(changed){previous=null;persist();render();}
+await publish(shared);await loadRequests(shared,result.closed);
 message(result.closed?'This QR is closed or expired. Close check-in here to enable a new QR.':'Check-in enabled · Arrivals are up to date.');return true;
 }catch(e){message(e.message+' Manual entry still works.');return false;}finally{busy=false;}}
+function applyCounts(counts){let changed=false;for(const p of state.players){const used=Math.max(p.customUsed||0,counts[p.id]||0);if(used!==(p.customUsed||0)){p.customUsed=used;changed=true;}const old=previous?.players.find(x=>x.id===p.id);if(old)old.customUsed=Math.max(old.customUsed||0,used);}if(changed){persist();render();}}
+async function publish(shared){if(state.checkin!==shared)return;const counts=await CheckinAPI.call('publish_live',{p_session:shared.id,p_owner:shared.owner,p_state:{players:state.players,queue:nextOrder(),courts:state.courts,completed:state.completed,lineup:state.lineup||[],next:nextPlayers()}});if(state.checkin===shared)applyCounts(counts);return counts;}
+let manualAttempt=null;
+window.approveCustomLineup=async(chosen,requestId=null)=>{
+if(busy)return false;const eligible=()=>chosen.length===4&&new Set(chosen).size===4&&chosen.every(id=>state.queue.includes(id)&&(player(id).customUsed||0)<2);
+if(!eligible()){$('lineup-error').textContent='Choose four waiting players with custom lineups remaining.';message('A selected player is unavailable or has used both custom lineups.');return false;}
+busy=true;document.querySelector('main').inert=true;const shared=state.checkin;
+try{let counts=null;if(shared){await publish(shared);if(!eligible())throw Error('A selected player has used both custom lineups.');const signature=shared.id+chosen.join(',');if(!manualAttempt||manualAttempt.signature!==signature)manualAttempt={signature,id:crypto.randomUUID()};
+if(requestId)await CheckinAPI.call('decide',{p_session:shared.id,p_owner:shared.owner,p_request:requestId,p_status:'approved'});else await CheckinAPI.call('custom_use',{p_session:shared.id,p_owner:shared.owner,p_use:manualAttempt.id,p_players:chosen});
+counts=await publish(shared);if(state.checkin!==shared)throw Error('The active session changed. Refresh before trying again.');}
+change(()=>{state.queue=nextOrder([],false).filter(id=>!chosen.includes(id)).concat(chosen);state.lineup=[...chosen];state.lineupAtBack=true;state.skipped=(state.skipped||[]).filter(id=>!chosen.includes(id));for(const id of chosen)player(id).customUsed=counts?counts[id]:(player(id).customUsed||0)+1;},'Custom lineup approved and queued last.');
+for(const old of previous.players){const now=player(old.id);if(now)old.customUsed=now.customUsed||0;}
+manualAttempt=null;if(shared)await publish(shared);return true;
+}catch(e){$('lineup-error').textContent=e.message;message(e.message);return false;}finally{busy=false;document.querySelector('main').inert=false;}};
+async function loadRequests(shared,closed){const requests=await CheckinAPI.call('requests',{p_session:shared.id,p_owner:shared.owner});if(state.checkin!==shared)return;requestsPanel.hidden=false;const list=$('player-requests');list.replaceChildren();if(!requests.length)list.append(node('p','helper','No pending requests.'));
+requests.forEach(r=>{const row=node('div','row'),info=node('div','person');info.append(node('div','name',`${player(r.requester)?.name||'Player'} requests a lineup`),node('p','helper',r.players.map(id=>player(id)?.name||'Unavailable player').join(' · ')));row.append(info);
+const eligible=()=>!closed&&!(state.lineup||[]).length&&r.players.length===4&&r.players.every(id=>state.queue.includes(id)&&(player(id).customUsed||0)<2);
+for(const action of ['approved','declined']){const button=node('button',action==='approved'?'dark':'quiet',action==='approved'?'Approve · queue last':'Decline');button.disabled=action==='approved'&&!eligible();button.onclick=async()=>{if(busy)return;if(action==='approved'){if(!eligible())return;await window.approveCustomLineup(r.players,r.id);await loadRequests(shared,closed);return;}busy=true;button.disabled=true;try{await CheckinAPI.call('decide',{p_session:shared.id,p_owner:shared.owner,p_request:r.id,p_status:'declined'});await loadRequests(shared,closed);}catch(e){message(e.message);}finally{busy=false;button.disabled=false;}};row.append(button);}list.append(row);});}
 $('share-stop').onclick=async()=>{if(busy||!state.checkin)return;busy=true;$('share-stop').disabled=true;const shared=state.checkin;
 try{await CheckinAPI.call('close',{p_session:shared.id,p_owner:shared.owner});busy=false;const received=await poll();if(received&&state.checkin===shared){delete state.checkin;previous=null;persist();render();show();}}
 catch(e){message(e.message+' Check-in has not been closed.');}finally{busy=false;$('share-stop').disabled=false;}};
