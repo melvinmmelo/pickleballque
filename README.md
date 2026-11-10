@@ -18,6 +18,10 @@ Use **Remove** beside a waiting player to remove them from the list and queue af
 
 Data saves in localStorage in the current browser. Existing single-court sessions migrate to Court 01 with game counts and queue order preserved. Data does not sync across devices, browsers, or between the local file and hosted site. Clearing browser storage may erase the session. A warning appears when saving is unavailable.
 
+## Announcements
+
+Both pages show a dismissible announcement bar at the top (currently: tournament mode is coming soon). **Share your ideas** opens the Feedback form with the topic filled in, and **Dismiss** hides the bar in that browser. To post a different announcement, edit the text in `announcement.js` and change its `ID` so people who dismissed the old one see the new one; remember to bump the `?v=` on its script tags.
+
 ## Feedback, bug reports, and ratings
 
 Both pages have a **Feedback** button. Choose **Feedback** to give a 1–5 star rating and/or a message, or **Report a bug** to describe what went wrong (at least 10 characters). An email or phone for a reply is optional. To help fix problems, each submission includes the page, app version, browser, and screen size, plus on the organizer page the number of courts, players, and waiting players and whether QR check-in was on. Player names are never sent. A hidden field catches simple spam bots, and the server limits how many reports arrive per hour.

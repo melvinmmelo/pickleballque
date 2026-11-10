@@ -1,0 +1,12 @@
+/* Dismissible announcement bar, shared by the organizer and player pages. */
+.announcement{display:flex;flex-wrap:wrap;align-items:center;gap:10px 18px;background:var(--ink,#0f2438);color:#fff;border-radius:14px;padding:12px 16px;margin:0 0 18px;animation:announce-in .45s ease-out both}
+.announce-text{margin:0;flex:1 1 320px;color:#d8e2ea;line-height:1.5}
+.announce-text strong{color:#fff;font-weight:700;margin-right:4px}
+.announce-tag{display:inline-block;background:var(--ball,#dcf24a);color:var(--on-ball,#0f2438);font-size:12px;font-weight:750;padding:3px 9px;border-radius:999px;margin-right:10px;vertical-align:1px}
+.announce-actions{display:flex;align-items:center;gap:6px;flex-shrink:0}
+.announce-ideas{background:#fff;color:var(--ink,#0f2438);border:0;border-radius:9px;padding:8px 14px;font:inherit;font-size:14px;font-weight:700;cursor:pointer}
+.announce-dismiss{background:none;border:0;color:#c3d0db;padding:8px 6px;font:inherit;font-size:14px;font-weight:600;text-decoration:underline;text-underline-offset:3px;cursor:pointer}
+.announce-ideas:focus-visible,.announce-dismiss:focus-visible{outline:3px solid var(--ball,#dcf24a);outline-offset:2px}
+@keyframes announce-in{from{opacity:0;transform:translateY(-6px)}to{opacity:1;transform:none}}
+@media (prefers-reduced-motion:reduce){.announcement{animation:none}}
+@media (max-width:600px){.announce-actions{width:100%;justify-content:space-between}}
