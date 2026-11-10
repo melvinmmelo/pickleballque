@@ -18,6 +18,12 @@ Use **Remove** beside a waiting player to remove them from the list and queue af
 
 Data saves in localStorage in the current browser. Existing single-court sessions migrate to Court 01 with game counts and queue order preserved. Data does not sync across devices, browsers, or between the local file and hosted site. Clearing browser storage may erase the session. A warning appears when saving is unavailable.
 
+## Club colors and logos
+
+Use **Customize** to choose a court color preset (Classic, Park green, Pro purple, Red clay, Night session) or set custom court, kitchen, surround, and button colors. A warning appears if a choice would make names or buttons hard to read. Upload a **club logo** for the top of the page and a **court logo** that appears on every court. Logos are resized in the browser and stored as small images. Branding is saved in this browser, separately from the session, so **Reset session** and **Undo** do not change it.
+
+While QR check-in is on, players see the same colors and logos on the player page. Phones download the branding once, and again only after the organizer changes it. For a separate deployment, run `supabase/branding.sql` after `player-page.sql`; without it, the organizer page still shows the branding but players see the default look.
+
 ## Custom lineup at the back
 
 Open **Custom lineup**, select four distinct waiting players (first two on Team A, last two on Team B), then choose **Queue lineup last**. Those four move to the back as a group; earlier waiting players go first. The chosen teams stay together until their turn. If fewer than four players remain ahead, they wait for returning players or new arrivals to complete their game. The custom group does not jump ahead. Later arrivals otherwise join behind the group.

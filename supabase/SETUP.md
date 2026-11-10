@@ -32,3 +32,7 @@ The player-page migration also maintains per-player custom-lineup counts and an 
 ## Nickname hardening
 
 `nickname-hardening.sql` was added on 2026-11-09. Run it after `session-checkin.sql` (and after `player-page.sql` if installed). It replaces `sideout_join` and `sideout_create` so nicknames with no visible characters are rejected. Before this change, a single no-break space or U+FEFF nickname passed the server check, and the organizer page treated that as an empty name and discarded the whole saved session on reload. The organizer page now also ignores such arrivals and repairs affected saved sessions. Applying the SQL closes the hole at the source. The file is idempotent. It was applied to the hosted project (`bsvuxfocoroiaxhrzucb`) on 2026-11-09.
+
+## Club branding
+
+`branding.sql` was added on 2026-11-10. Run it after `player-page.sql`. It stores each QR session's colors and logos (`sideout_set_brand`, organizer key required), lets players fetch them (`sideout_brand`), and adds `brandVersion` to `sideout_player_view` so phones download branding only when it changes. The server accepts only four `#rrggbb` colors and two base64 PNG, WebP, or JPEG logos of about 90 KB or less; other keys are dropped and SVG or remote URLs are rejected. The file is idempotent. Until it is applied, organizer pages keep working and players see the default colors.

@@ -18,7 +18,7 @@ try{const id=crypto.randomUUID(),owner=crypto.randomUUID().replaceAll('-','')+cr
 // Ensure browser storage works before creating a remote session.
 localStorage.setItem('sideout-storage-test','1');localStorage.removeItem('sideout-storage-test');
 const result=await CheckinAPI.call('create',{p_session:id,p_owner:owner,p_players:state.players.map(p=>({id:p.id,name:p.name}))});
-state.checkin={id,owner,seen:state.players.map(p=>p.id),expiresAt:result.expiresAt};previous=null;persist();render();show();await publish(state.checkin);
+state.checkin={id,owner,seen:state.players.map(p=>p.id),expiresAt:result.expiresAt};previous=null;persist();render();show();await publish(state.checkin);await pushBrand(state.checkin);
 }catch(e){message(e.message);}finally{$('share-start').disabled=!CheckinAPI.configured();}});};
 function poll(){if(waiting||!state.checkin||!CheckinAPI.configured()||document.hidden)return;return exclusive(sync);}
 async function sync(){const shared=state.checkin;if(!shared)return false;
@@ -26,11 +26,16 @@ try{const result=await CheckinAPI.call('poll',{p_session:shared.id,p_owner:share
 let changed=false;for(const arrival of result.arrivals){if(shared.seen.includes(arrival.id))continue;const name=cleanName(arrival.name);
 if(typeof arrival.id==='string'&&visibleName(name)&&!state.players.some(p=>p.id===arrival.id||p.name.toLocaleLowerCase()===name.toLocaleLowerCase())){state.players.push({id:arrival.id,name,games:0});state.queue.push(arrival.id);}shared.seen.push(arrival.id);changed=true;}
 if(changed){previous=null;persist();render();}
-await publish(shared);await loadRequests(shared,result.closed);
-message(result.closed?'This QR is closed or expired. Close check-in here to enable a new QR.':'Check-in enabled · Arrivals are up to date.');return true;
+await publish(shared);await pushBrand(shared);await loadRequests(shared,result.closed);
+message((result.closed?'This QR is closed or expired. Close check-in here to enable a new QR.':'Check-in is on. Arrivals are up to date.')+(brandNote?' '+brandNote:''));return true;
 }catch(e){message(e.message+' Manual entry still works.');return false;}}
 function applyCounts(counts){let changed=false;for(const p of state.players){const used=Math.max(p.customUsed||0,counts[p.id]||0);if(used!==(p.customUsed||0)){p.customUsed=used;changed=true;}const old=previous?.players.find(x=>x.id===p.id);if(old)old.customUsed=Math.max(old.customUsed||0,used);}if(changed){persist();render();}}
 async function publish(shared){if(state.checkin!==shared)return;const counts=await CheckinAPI.call('publish_live',{p_session:shared.id,p_owner:shared.owner,p_state:{players:state.players,queue:nextOrder(),courts:state.courts,completed:state.completed,lineup:state.lineup||[],next:nextPlayers()}});if(state.checkin===shared)applyCounts(counts);return counts;}
+// Club branding goes to the shared session only when it changes. A database without the branding
+// migration is detected once and skipped quietly; players then keep the default look.
+const brandSent=new Map();let brandUnsupported=false,brandNote='';
+async function pushBrand(shared){if(brandUnsupported||!window.SideoutBrand||typeof brand==='undefined'||!brand||state.checkin!==shared)return;const plain=SideoutBrand.isDefault(brand),key=plain?'default':SideoutBrand.key(brand);if((brandSent.get(shared.id)??'default')===key)return;brandSent.set(shared.id,key);
+try{await CheckinAPI.call('set_brand',{p_session:shared.id,p_owner:shared.owner,p_brand:plain?null:{colors:brand.colors,clubLogo:brand.clubLogo,courtLogo:brand.courtLogo}});brandNote='';}catch(e){if(/set_brand|schema cache|does not exist|could not find/i.test(e.message))brandUnsupported=true;else brandNote='Players can’t see your colors and logos yet: '+e.message;}}
 let manualAttempt=null;
 window.approveCustomLineup=(chosen,requestId=null)=>{const main=document.querySelector('main');main.inert=true;return exclusive(async()=>{const eligible=()=>chosen.length===4&&new Set(chosen).size===4&&chosen.every(id=>state.queue.includes(id)&&(player(id).customUsed||0)<2);
 if(!requestId&&state.lineup?.length===4&&chosen.every((id,i)=>state.lineup[i]===id))return true;

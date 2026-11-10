@@ -11,7 +11,8 @@
 /* Court plan: hard-court blue on apron green, white lines, ball yellow only for the main action. */
 :root{
   --page:#E6ECEF;--ink:#0F2438;--muted:#56697A;--rule:#C6D2D9;--surface:#FFFFFF;
-  --court:#2B5D8C;--kitchen:#3B74A6;--apron:#2E7553;--apron-edge:#9CC7B0;--apron-text:#CFE6D9;--line:#FFFFFF;--ball:#DCF24A;
+  --court:#2B5D8C;--kitchen:#3B74A6;--apron:#2E7553;--line:#FFFFFF;--ball:#DCF24A;--on-ball:#0F2438;
+  --apron-edge:color-mix(in srgb,#fff 50%,var(--apron));--apron-text:color-mix(in srgb,#fff 78%,var(--apron));
   --danger:#9A3324;--danger-bg:#F7E4E0;
   font-family:Archivo,ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif;color:var(--ink);background:var(--page);font-synthesis:none;
 }
@@ -25,7 +26,7 @@ button:focus-visible,input:focus-visible,select:focus-visible,summary:focus-visi
 p{margin:0;line-height:1.5}
 h2{font-stretch:112%;font-weight:800;font-size:22px;letter-spacing:-.01em;margin:0}
 .dark{background:var(--ink);color:#fff}
-.primary{background:var(--ball);color:var(--ink)}
+.primary{background:var(--ball);color:var(--on-ball)}
 .quiet{background:none;padding:6px 2px;font-weight:650;text-decoration:underline;text-underline-offset:3px;border-radius:4px}
 .danger{color:var(--danger)}
 .helper{font-size:13px;color:var(--muted);margin-top:12px}
@@ -33,6 +34,8 @@ h2{font-stretch:112%;font-weight:800;font-size:22px;letter-spacing:-.01em;margin
 
 /* Top bar */
 .bar{display:flex;flex-wrap:wrap;align-items:center;gap:8px 20px;max-width:1240px;margin:0 auto;padding:20px}
+.brand-row{display:flex;align-items:center;gap:12px}
+.club-logo{height:40px;max-width:160px;object-fit:contain}
 .mark{font-stretch:125%;font-weight:850;font-size:26px;letter-spacing:-.02em}
 .totals{color:var(--muted);display:flex;gap:16px}
 .totals b{color:var(--ink)}
@@ -45,10 +48,12 @@ main{max-width:1240px;margin:0 auto;padding:4px 20px 40px}
 /* Courts sit side by side like a real facility */
 .courts{display:grid;grid-template-columns:repeat(auto-fill,minmax(330px,1fr));gap:18px}
 .court{background:var(--apron);color:#fff;border-radius:18px;padding:14px 18px 18px}
-.court-head{display:flex;align-items:baseline;gap:12px;margin-bottom:12px}
+.court-head{display:flex;flex-wrap:wrap;align-items:center;gap:6px 12px;margin-bottom:12px}
+.court-logo{height:30px;max-width:110px;object-fit:contain;margin-left:auto}
 .num{font-stretch:125%;font-weight:900;font-size:46px;line-height:.9;letter-spacing:-.02em}
 .state{color:var(--apron-text);font-size:14px}
-.court-head .quiet{margin-left:auto;color:var(--apron-text);font-size:13px}
+.court-foot{display:flex;justify-content:flex-end;margin:8px 0 -6px}
+.court-foot .quiet{color:var(--apron-text);font-size:13px}
 
 /* 44 x 20 ft playing surface: service area 15 ft, kitchen 7 ft, net, kitchen 7 ft, service area 15 ft */
 .surface{position:relative;aspect-ratio:44/20;background:var(--court);outline:2px solid var(--line);display:grid;grid-template-columns:15fr 7fr 7fr 15fr;grid-template-rows:1fr 1fr}
@@ -62,7 +67,7 @@ main{max-width:1240px;margin:0 auto;padding:4px 20px 40px}
 .player-chip,.preview{position:relative;display:inline-block;font-weight:650;font-size:clamp(14px,1.35vw,18px);line-height:1.15;overflow-wrap:anywhere;max-width:100%}
 .preview{color:#ffffffa6;font-weight:500}
 /* A name in motion becomes a ball-yellow token so it stays readable over court and page alike */
-.player-chip.flying,.deck .name.flying{background:var(--ball);color:var(--ink);border-radius:6px;box-shadow:0 0 0 4px var(--ball)}
+.player-chip.flying,.deck .name.flying{background:var(--ball);color:var(--on-ball);border-radius:6px;box-shadow:0 0 0 4px var(--ball)}
 
 .actions{display:grid;grid-template-columns:1fr 1.25fr;gap:10px;margin-top:18px}
 .actions.single{grid-template-columns:1fr}
@@ -128,6 +133,27 @@ dialog::backdrop{background:#0F243880}
 #archive-content table{width:100%;border-collapse:collapse;margin:18px 0}
 #archive-content td,#archive-content th{text-align:left;border-bottom:1px solid var(--rule);padding:10px 6px;overflow-wrap:anywhere}
 #archive-list .row{flex-wrap:wrap}
+.brand-form fieldset{border:0;padding:0;margin:18px 0 0;min-width:0}
+.brand-form legend{font-weight:700;font-size:16px;margin-bottom:10px;padding:0}
+.swatches{display:grid;grid-template-columns:repeat(auto-fill,minmax(98px,1fr));gap:10px}
+.swatch{display:grid;gap:6px;justify-items:center;padding:10px 6px;border:2px solid var(--rule);border-radius:12px;cursor:pointer;font-size:13px;font-weight:600;text-align:center}
+.swatch:has(input:checked){border-color:var(--ink);background:#F4F7F8}
+.swatch:focus-within{outline:3px solid var(--court);outline-offset:2px}
+.mini{width:72px;height:40px;border-radius:6px;background:var(--a);display:grid;place-items:center}
+.mini::before{content:"";width:56px;height:26px;background:linear-gradient(90deg,var(--c) 0 34%,var(--k) 34% 66%,var(--c) 66%);outline:1.5px solid #fff}
+.mini.custom{background:conic-gradient(#2b5d8c,#4a3d8f,#a4473a,#2e7553,#2b5d8c)}.mini.custom::before{display:none}
+.pickers{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin-top:14px}
+.pickers label{display:grid;gap:4px;font-size:13px;color:var(--muted)}
+input[type=color]{padding:2px;height:42px;cursor:pointer}
+.logo-slot{display:grid;grid-template-columns:104px minmax(0,1fr);gap:14px;align-items:center;padding:12px 0;border-bottom:1px solid var(--rule)}
+.logo-preview{width:104px;height:68px;border-radius:10px;display:grid;place-items:center;overflow:hidden;background:var(--page);border:1.5px dashed var(--rule)}
+.logo-preview.courtLogo{background:var(--apron);border-color:transparent}
+.logo-preview img{max-width:90px;max-height:54px;object-fit:contain}
+.logo-preview span{font-size:12px;color:var(--muted);text-align:center;padding:4px}.logo-preview.courtLogo span{color:var(--apron-text)}
+.logo-slot .helper{margin:2px 0 8px}
+.upload{display:inline-block;background:var(--ink);color:#fff;border-radius:10px;padding:9px 14px;font-weight:650;cursor:pointer;margin-right:12px}
+.upload:focus-within{outline:3px solid var(--court);outline-offset:2px}
+#brand-message{min-height:1.5em}
 
 .footer{display:flex;flex-wrap:wrap;align-items:baseline;gap:8px 18px;margin-top:28px;font-size:14px;color:var(--muted)}
 
@@ -142,15 +168,17 @@ dialog::backdrop{background:#0F243880}
   .deck{grid-template-columns:1fr 1fr}
   .card{padding:18px}
   .share-grid{grid-template-columns:1fr}
+  .pickers{grid-template-columns:1fr 1fr}
+  .club-logo{height:34px;max-width:120px}
   .roster-table .custom{display:none}
 }
 </style>
 </head>
 <body>
 <header class="bar">
-  <div class="mark">sideout</div>
+  <div class="brand-row"><img id="club-logo" class="club-logo" alt="Club logo" hidden><div class="mark">sideout</div></div>
   <div class="totals"><span id="session-count"></span><span id="player-count"></span></div>
-  <nav><a class="tool" href="#checkin">QR check-in</a><a class="tool" href="#saved">Saved sessions</a><button class="tool" id="undo" disabled>Undo</button></nav>
+  <nav><button class="tool" id="customize" type="button" hidden>Customize</button><a class="tool" href="#checkin">QR check-in</a><a class="tool" href="#saved">Saved sessions</a><button class="tool" id="undo" disabled>Undo</button></nav>
 </header>
 <main>
 <div id="notice" class="notice" role="alert" hidden></div>
@@ -176,6 +204,7 @@ dialog::backdrop{background:#0F243880}
 <!-- Bump ?v= whenever these files change so browsers never pair this page with a stale cached script. -->
 <script src="vendor/gsap/gsap.min.js?v=3.15.0"></script>
 <script src="vendor/gsap/Flip.min.js?v=3.15.0"></script>
+<script src="brand.js?v=2026-11-10b"></script>
 <script>
 'use strict';
 const KEY='sideout-queue-v1';
@@ -207,6 +236,12 @@ return [...ahead,...chosen,...behind];}
 function nextPlayers(returning=[]){const ordered=nextOrder(returning),chosen=state.lineup||[],first=ordered.slice(0,4);if(chosen.length===4&&first.some(id=>chosen.includes(id))&&!first.every(id=>chosen.includes(id)))return first.slice(0,first.findIndex(id=>chosen.includes(id)));return first;}
 function player(id){return state.players.find(p=>p.id===id);}
 const plural=(n,word)=>`${n} ${word}${n===1?'':'s'}`;
+// Club branding lives under its own key, so Reset session and Undo never touch it.
+const BRAND_KEY='sideout-brand-v1';
+let brand=window.SideoutBrand?SideoutBrand.load(BRAND_KEY):null;
+function showBrand(){if(!brand)return;SideoutBrand.apply(brand);const logo=$('club-logo');logo.hidden=!brand.clubLogo;if(brand.clubLogo)logo.src=brand.clubLogo;else logo.removeAttribute('src');}
+function setBrand(next,save=true){brand=SideoutBrand.clean(next);if(save){try{SideoutBrand.save(BRAND_KEY,brand);}catch{$('notice').hidden=false;$('notice').textContent='Branding could not be saved: browser storage is full. It will reset when this page reloads.';}}showBrand();render();}
+showBrand();
 
 // Motion: GSAP Flip moves each name from where it was to where it is now (deck to court, court to queue, skips, undo).
 // Skipped entirely if GSAP did not load or the visitor prefers reduced motion.
@@ -238,7 +273,8 @@ const playing=c.current.length>0,preview=!playing&&c===firstOpen&&ready.length==
 const card=node('article','court');card.dataset.court=c.id;
 const head=node('header','court-head');
 head.append(node('span','num',String(c.id)),node('span','state',playing?'Game in progress':preview?'Open, next four shown':c!==firstOpen?'Open':state.queue.length<4?`Open, needs ${plural(4-state.queue.length,'more player')}`:'Open, waiting for players ahead of the custom group'));
-if(state.courts.length>1){const remove=node('button','quiet','Remove court');remove.type='button';remove.disabled=playing;remove.title=playing?'Use Finish game only before removing this court':'Remove this empty court';remove.onclick=()=>change(()=>{state.courts=state.courts.filter(x=>x.id!==c.id);},'Court removed.');head.append(remove);}
+if(brand?.courtLogo){const logo=node('img','court-logo');logo.src=brand.courtLogo;logo.alt='';head.append(logo);}
+const foot=node('div','court-foot');if(state.courts.length>1){const remove=node('button','quiet','Remove court');remove.type='button';remove.disabled=playing;remove.title=playing?'Use Finish game only before removing this court':'Remove this empty court';remove.onclick=()=>change(()=>{state.courts=state.courts.filter(x=>x.id!==c.id);},'Court removed.');foot.append(remove);}
 const surface=node('div','surface');surface.setAttribute('role','img');
 surface.setAttribute('aria-label',playing?`Court ${c.id}: ${player(names[0]).name} and ${player(names[1]).name} versus ${player(names[2]).name} and ${player(names[3]).name}`:preview?`Court ${c.id} is open. Next up: ${names.map(id=>player(id).name).join(', ')}`:`Court ${c.id} is open`);
 const box=(i,pos,side)=>{const el=node('div',`box ${pos} ${side}`);const id=names[i];if(id){const label=node('span',playing?'player-chip':'preview',player(id).name);if(playing)label.dataset.flipId='p-'+id;el.append(label);}return el;};
@@ -246,7 +282,7 @@ surface.append(box(0,'top','a'),box(1,'bottom','a'),node('div','kitchen left'),n
 const actions=node('div',playing?'actions':'actions single');
 if(playing){const finish=node('button','finish-only','Finish game only');finish.type='button';finish.title='Count this game and leave the court open';finish.onclick=()=>play(c.id,false);actions.append(finish);}
 const start=node('button','primary game-action',playing?'Finish game & rotate':'Start game');start.type='button';start.disabled=!playing&&ready.length<4;start.title=playing?'Count this game and start the next four':'Start a game with the next four';start.onclick=()=>play(c.id);actions.append(start);
-card.append(head,surface,actions);courts.append(card);
+card.append(head,surface,actions);if(foot.childElementCount)card.append(foot);courts.append(card);
 });
 const addCourt=node('button','add-court','Add court');addCourt.type='button';addCourt.id='add-court';addCourt.onclick=()=>change(()=>{state.courts.push({id:Math.max(...state.courts.map(c=>c.id))+1,current:[]});},'Court added.');courts.append(addCourt);
 
@@ -293,10 +329,11 @@ $('reset').onclick=()=>{if(confirm('Reset this session? This clears all players 
 window.addEventListener('storage',e=>{if(e.key!==KEY)return;try{const incoming=e.newValue?migrate(JSON.parse(e.newValue)):fresh();if(valid(incoming)){state=incoming;previous=null;render();}}catch{}});
 render();
 </script>
-<script src="config.js?v=2026-11-10a"></script>
+<script src="config.js?v=2026-11-10b"></script>
 <script src="vendor/qrcode.js"></script>
-<script src="checkin-api.js?v=2026-11-10a"></script>
-<script src="checkin.js?v=2026-11-10a"></script>
-<script src="archives.js?v=2026-11-10a"></script>
+<script src="checkin-api.js?v=2026-11-10b"></script>
+<script src="checkin.js?v=2026-11-10b"></script>
+<script src="archives.js?v=2026-11-10b"></script>
+<script src="customize.js?v=2026-11-10b"></script>
 </body>
 </html>

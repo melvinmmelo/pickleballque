@@ -1,10 +1,13 @@
 /* Player view in the Court plan style. Archivo is bundled in vendor/fonts (SIL OFL 1.1). */
 @font-face{font-family:Archivo;font-style:normal;font-weight:100 900;font-stretch:62% 125%;font-display:swap;src:url(vendor/fonts/archivo-latin-ext.woff2) format('woff2');unicode-range:U+0100-02BA,U+02BD-02C5,U+02C7-02CC,U+02CE-02D7,U+02DD-02FF,U+0304,U+0308,U+0329,U+1D00-1DBF,U+1E00-1E9F,U+1EF2-1EFF,U+2020,U+20A0-20AB,U+20AD-20C4,U+2113,U+2C60-2C7F,U+A720-A7FF}
 @font-face{font-family:Archivo;font-style:normal;font-weight:100 900;font-stretch:62% 125%;font-display:swap;src:url(vendor/fonts/archivo-latin.woff2) format('woff2');unicode-range:U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD}
-:root{--page:#E6ECEF;--ink:#0F2438;--muted:#56697A;--rule:#C6D2D9;--surface:#FFFFFF;--court:#2B5D8C;--kitchen:#3B74A6;--apron:#2E7553;--apron-text:#CFE6D9;--line:#FFFFFF;--ball:#DCF24A}
+:root{--page:#E6ECEF;--ink:#0F2438;--muted:#56697A;--rule:#C6D2D9;--surface:#FFFFFF;--court:#2B5D8C;--kitchen:#3B74A6;--apron:#2E7553;--line:#FFFFFF;--ball:#DCF24A;--on-ball:#0F2438;--apron-text:color-mix(in srgb,#fff 78%,var(--apron))}
 *{box-sizing:border-box}
 body{margin:0;background:var(--page);color:var(--ink);font:15px/1.45 Archivo,ui-sans-serif,system-ui,sans-serif;font-synthesis:none}
 header{display:flex;justify-content:space-between;align-items:baseline;max-width:980px;margin:0 auto;padding:20px}
+header .brand-row{display:flex;align-items:center;gap:10px}
+.club-logo{height:36px;max-width:140px;object-fit:contain}
+.court-logo{height:24px;max-width:96px;object-fit:contain;margin-left:auto}
 header b{font-stretch:125%;font-weight:850;font-size:26px;letter-spacing:-.02em}
 header span{color:var(--muted)}
 main{max-width:980px;margin:0 auto;padding:0 20px 40px}
@@ -28,12 +31,12 @@ button:focus-visible,input:focus-visible,select:focus-visible{outline:3px solid 
 #my-turn{margin-top:14px}
 #my-turn h2{margin:4px 0 6px}
 .turn-count{font-stretch:125%;font-weight:900;font-size:46px;line-height:1;letter-spacing:-.02em;color:var(--court);margin:10px 0 0}
-.tag{display:inline-block;padding:5px 10px;border-radius:999px;background:var(--ball);color:var(--ink);font-size:13px;font-weight:650}
+.tag{display:inline-block;padding:5px 10px;border-radius:999px;background:var(--ball);color:var(--on-ball);font-size:13px;font-weight:650}
 
 /* Live courts, drawn to pickleball proportions */
 #live-courts{display:grid;gap:14px}
 .court{background:var(--apron);color:#fff;border-radius:14px;padding:12px 14px 14px}
-.court-head{display:flex;align-items:baseline;gap:10px;margin-bottom:10px}
+.court-head{display:flex;align-items:center;gap:10px;margin-bottom:10px}
 .num{font-stretch:125%;font-weight:900;font-size:32px;line-height:.9}
 .state{color:var(--apron-text);font-size:13px}
 .surface{position:relative;aspect-ratio:44/20;background:var(--court);outline:2px solid var(--line);display:grid;grid-template-columns:15fr 7fr 7fr 15fr;grid-template-rows:1fr 1fr}
@@ -45,7 +48,7 @@ button:focus-visible,input:focus-visible,select:focus-visible{outline:3px solid 
 .box.top{grid-row:1;border-bottom:2px solid var(--line)}.box.bottom{grid-row:2}
 .box.a{grid-column:1}.box.b{grid-column:4}
 .chip{font-weight:650;font-size:14px;line-height:1.15;overflow-wrap:anywhere;max-width:100%}
-.chip.me{background:var(--ball);color:var(--ink);padding:2px 6px;border-radius:6px}
+.chip.me{background:var(--ball);color:var(--on-ball);padding:2px 6px;border-radius:6px}
 
 .row{display:flex;justify-content:space-between;gap:12px;padding:10px 0;border-bottom:1px solid var(--rule);overflow-wrap:anywhere}
 .row:last-child{border-bottom:0}
