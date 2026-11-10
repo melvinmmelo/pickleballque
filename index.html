@@ -70,6 +70,12 @@ main{max-width:1240px;margin:0 auto;padding:4px 20px 40px}
 .player-chip.flying,.deck .name.flying{background:var(--ball);color:var(--on-ball);border-radius:6px;box-shadow:0 0 0 4px var(--ball)}
 
 .actions{display:grid;grid-template-columns:1fr 1.25fr;gap:10px;margin-top:18px}
+.guesses{margin-top:16px}
+.guess-bar{display:flex;align-items:center;gap:10px}
+.guess-bar b{font-stretch:125%;font-weight:900;font-size:18px;min-width:1.4em;text-align:center}
+.split{flex:1;display:flex;height:10px;border-radius:5px;overflow:hidden;background:color-mix(in srgb,#fff 18%,var(--apron))}
+.split .a{background:#fff}.split .b{background:var(--ball)}
+.guess-label{font-size:13px;color:var(--apron-text);text-align:center;margin-top:4px}
 .actions.single{grid-template-columns:1fr}
 .actions button{border-radius:10px;padding:13px 12px;font-weight:700;font-size:15px}
 .finish-only{background:transparent;color:#fff;border:1.5px solid var(--apron-edge)!important}
@@ -216,7 +222,8 @@ const $=id=>document.getElementById(id);
 // Nicknames must contain a visible character. Check-ins arrive from other devices, so never trust them to be clean.
 const cleanName=s=>String(s??'').replace(/\s+/g,' ').trim(),visibleName=s=>/[^\s\p{Cc}\p{Cf}]/u.test(s);
 function repairNames(s){const list=Array.isArray(s?.players)?s.players.filter(p=>p&&typeof p.name==='string'):[],taken=new Set(list.map(p=>p.name.toLocaleLowerCase()));let n=1;for(const p of list)if(!visibleName(p.name)){while(taken.has('player '+n))n++;p.name='Player '+n;taken.add('player '+n);}return s;}
-function migrate(s){repairNames(s);if(s&&!s.courts&&Array.isArray(s.current)){s.courts=[{id:1,current:s.current}];delete s.current;}if(s&&Array.isArray(s.lineup)&&s.lineup.length===4&&Array.isArray(s.queue)&&!s.lineupAtBack){s.queue=s.queue.filter(id=>!s.lineup.includes(id)).concat(s.lineup);s.lineupAtBack=true;}return s;}
+const newId=()=>globalThis.crypto?.randomUUID?.()||`${Date.now()}-${Math.random().toString(36).slice(2)}`;
+function migrate(s){repairNames(s);if(Array.isArray(s?.courts))for(const c of s.courts)if(c&&Array.isArray(c.current)&&c.current.length===4&&typeof c.game!=='string')c.game=newId();if(s&&!s.courts&&Array.isArray(s.current)){s.courts=[{id:1,current:s.current}];delete s.current;}if(s&&Array.isArray(s.lineup)&&s.lineup.length===4&&Array.isArray(s.queue)&&!s.lineupAtBack){s.queue=s.queue.filter(id=>!s.lineup.includes(id)).concat(s.lineup);s.lineupAtBack=true;}return s;}
 function valid(s){
 if(!s||!Array.isArray(s.players)||!Array.isArray(s.queue)||!Array.isArray(s.courts)||!s.courts.length||!Number.isInteger(s.completed)||s.completed<0)return false;
 if(!s.players.every(p=>p&&typeof p.id==='string'&&typeof p.name==='string'&&p.name.trim()&&Number.isInteger(p.games)&&p.games>=0))return false;
@@ -239,6 +246,12 @@ return [...ahead,...chosen,...behind];}
 function nextPlayers(returning=[]){const ordered=nextOrder(returning),chosen=state.lineup||[],first=ordered.slice(0,4);if(chosen.length===4&&first.some(id=>chosen.includes(id))&&!first.every(id=>chosen.includes(id)))return first.slice(0,first.findIndex(id=>chosen.includes(id)));return first;}
 function player(id){return state.players.find(p=>p.id===id);}
 const plural=(n,word)=>`${n} ${word}${n===1?'':'s'}`;
+let guessCounts=null;const lastSplit=new Map();
+// Players' guesses on who wins, as a split bar under the court: Team A on the left, Team B on the right, like the drawing.
+function guessBar(c){const g=guessCounts[c.game]||{},a=Number(g.A)||0,b=Number(g.B)||0,total=a+b,team=i=>`${player(c.current[i]).name} and ${player(c.current[i+1]).name}`;
+const box=node('div','guesses'),bar=node('div','guess-bar'),split=node('div','split');box.setAttribute('role','img');box.setAttribute('aria-label',`Guesses on who wins: ${a} for ${team(0)}, ${b} for ${team(2)}`);
+if(total){const sa=node('span','a'),sb=node('span','b');sa.style.flexGrow=a;sb.style.flexGrow=b;split.append(sa,sb);const was=lastSplit.get(c.game);if(was&&(was[0]!==a||was[1]!==b)&&hasMotion())gsap.fromTo([sa,sb],{flexGrow:i=>was[i]},{flexGrow:i=>[a,b][i],duration:.6,ease:'power2.out'});}
+lastSplit.set(c.game,[a,b]);bar.append(node('b','',String(a)),split,node('b','',String(b)));box.append(bar,node('p','guess-label',total?`${total===1?'1 guess':total+' guesses'} on who wins`:'No guesses yet on who wins'));return box;}
 // Club branding lives under its own key, so Reset session and Undo never touch it.
 const BRAND_KEY='sideout-brand-v1';
 let brand=window.SideoutBrand?SideoutBrand.load(BRAND_KEY):null;
@@ -286,7 +299,7 @@ surface.append(box(0,'top','a'),box(1,'bottom','a'),node('div','kitchen left'),n
 const actions=node('div',playing?'actions':'actions single');
 if(playing){const finish=node('button','finish-only','Finish game only');finish.type='button';finish.title='Count this game and leave the court open';finish.onclick=()=>play(c.id,false);actions.append(finish);}
 const start=node('button','primary game-action',playing?'Finish game & rotate':'Start game');start.type='button';start.disabled=!playing&&ready.length<4;start.title=playing?'Count this game and start the next four':'Start a game with the next four';start.onclick=()=>play(c.id);actions.append(start);
-card.append(head,surface,actions);if(foot.childElementCount)card.append(foot);courts.append(card);
+card.append(head,surface,...(playing&&guessCounts&&c.game?[guessBar(c)]:[]),actions);if(foot.childElementCount)card.append(foot);courts.append(card);
 });
 const addCourt=node('button','add-court','Add court');addCourt.type='button';addCourt.id='add-court';addCourt.onclick=()=>change(()=>{state.courts.push({id:Math.max(...state.courts.map(c=>c.id))+1,current:[]});},'Court added.');courts.append(addCourt);
 
@@ -321,7 +334,7 @@ animate(before,places);rendered=true;
 $('add-form').onsubmit=e=>{e.preventDefault();const input=$('nickname'),name=cleanName(input.value);if(!visibleName(name)){input.setCustomValidity('Enter a nickname.');input.reportValidity();return;}const same=state.players.find(p=>p.name.toLocaleLowerCase()===name.toLocaleLowerCase());if(same){input.setCustomValidity((state.left||[]).includes(same.id)?`${same.name} left earlier. Use Return in the player list to bring them back.`:'That nickname is already in the queue. Use a unique nickname.');input.reportValidity();return;}change(()=>{const id=globalThis.crypto?.randomUUID?.()||`${Date.now()}-${Math.random()}`;state.players.push({id,name,games:0});state.queue.push(id);},`${name} joined the queue.`);input.value='';input.focus();};
 $('nickname').oninput=()=>$('nickname').setCustomValidity('');
 function play(courtId,rotate=true){const c=state.courts.find(c=>c.id===courtId);if(!c||(!c.current.length&&nextPlayers().length<4))return;
-change(()=>{const leaving=c.current.filter(id=>window.pendingLeaves?.has(id));if(c.current.length){c.current.forEach(id=>player(id).games++);state.completed++;}if(leaving.length)state.left=[...(state.left||[]),...leaving];state.queue=nextOrder(c.current.filter(id=>!leaving.includes(id)),rotate);c.current=[];if(rotate&&nextPlayers().length===4){c.current=state.queue.splice(0,4);if((state.lineup||[]).some(id=>c.current.includes(id)))state.lineup=[];}state.skipped=(state.skipped||[]).filter(id=>!state.queue.includes(id)&&!c.current.includes(id));},rotate?'Court updated. The queue is ready for the next available game.':'Game counted. Court is now available.');}
+change(()=>{const leaving=c.current.filter(id=>window.pendingLeaves?.has(id));if(c.current.length){c.current.forEach(id=>player(id).games++);state.completed++;}if(leaving.length)state.left=[...(state.left||[]),...leaving];state.queue=nextOrder(c.current.filter(id=>!leaving.includes(id)),rotate);c.current=[];delete c.game;if(rotate&&nextPlayers().length===4){c.current=state.queue.splice(0,4);c.game=newId();if((state.lineup||[]).some(id=>c.current.includes(id)))state.lineup=[];}state.skipped=(state.skipped||[]).filter(id=>!state.queue.includes(id)&&!c.current.includes(id));},rotate?'Court updated. The queue is ready for the next available game.':'Game counted. Court is now available.');}
 $('lineup-form').onsubmit=async e=>{e.preventDefault();const chosen=Array.from($('lineup-fields').querySelectorAll('select'),s=>s.value);if(chosen.length!==4||new Set(chosen).size!==4||chosen.some(id=>!state.queue.includes(id))){$('lineup-error').textContent='Choose four different waiting players.';return;}if(await window.approveCustomLineup(chosen))$('lineup-editor').open=false;};
 // Local-only approval. checkin.js replaces this with the shared-session version; keeping a default here means
 // the core queue still works if that optional script fails to load or a stale cached copy is served.
@@ -337,7 +350,7 @@ render();
 <script src="config.js?v=2026-11-10b"></script>
 <script src="vendor/qrcode.js"></script>
 <script src="checkin-api.js?v=2026-11-10b"></script>
-<script src="checkin.js?v=2026-11-10c"></script>
+<script src="checkin.js?v=2026-11-10e"></script>
 <script src="archives.js?v=2026-11-10c"></script>
 <script src="customize.js?v=2026-11-10b"></script>
 </body>

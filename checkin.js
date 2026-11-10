@@ -23,16 +23,17 @@ state.checkin={id,owner,seen:state.players.map(p=>p.id),expiresAt:result.expires
 function poll(){if(waiting||!state.checkin||!CheckinAPI.configured()||document.hidden)return;return exclusive(sync);}
 async function sync(){const shared=state.checkin;if(!shared)return false;
 try{const result=await CheckinAPI.call('poll',{p_session:shared.id,p_owner:shared.owner});if(state.checkin!==shared)return;
-let changed=false;for(const arrival of result.arrivals){if(shared.seen.includes(arrival.id))continue;const name=cleanName(arrival.name);
+let changed=false,changedView=false;for(const arrival of result.arrivals){if(shared.seen.includes(arrival.id))continue;const name=cleanName(arrival.name);
 if(typeof arrival.id==='string'&&visibleName(name)&&!(Number(arrival.leaves)>0)&&!state.players.some(p=>p.id===arrival.id||p.name.toLocaleLowerCase()===name.toLocaleLowerCase())){state.players.push({id:arrival.id,name,games:0});state.queue.push(arrival.id);}shared.seen.push(arrival.id);changed=true;}
 // Players who tapped Leave on their phone move from the queue to Left, keeping their games.
 // Someone on court is listed in pendingLeaves and goes to Left when their game is finished.
+const counts=result.guesses&&typeof result.guesses==='object'?result.guesses:null;if(JSON.stringify(counts)!==JSON.stringify(guessCounts)){guessCounts=counts;changedView=true;}
 const departed=[];shared.leaves=shared.leaves||{};pendingLeaves.clear();
 for(const arrival of result.arrivals){const id=arrival.id,count=Number(arrival.leaves)||0;if(count<=(shared.leaves[id]||0))continue;
 if(state.courts.some(c=>c.current.includes(id))){pendingLeaves.add(id);continue;}
 shared.leaves[id]=count;changed=true;if(state.queue.includes(id)){state.queue=state.queue.filter(x=>x!==id);state.left=[...(state.left||[]),id];if((state.lineup||[]).includes(id))state.lineup=[];state.skipped=(state.skipped||[]).filter(x=>x!==id);departed.push(player(id).name);}}
 if(departed.length)$('announcement').textContent=departed.join(', ')+' left the session.';
-if(changed){previous=null;persist();render();}
+if(changed){previous=null;persist();render();}else if(changedView)render();
 await publish(shared);await pushBrand(shared);await loadRequests(shared,result.closed);
 message((result.closed?'This QR is closed or expired. Close check-in here to enable a new QR.':'Check-in is on. Arrivals are up to date.')+(departed.length?' '+departed.join(', ')+' left the session.':'')+(brandNote?' '+brandNote:''));return true;
 }catch(e){message(e.message+' Manual entry still works.');return false;}}
@@ -61,7 +62,7 @@ requests.forEach(r=>{const row=node('div','row'),info=node('div','person');info.
 const eligible=()=>!closed&&!(state.lineup||[]).length&&r.players.length===4&&r.players.every(id=>state.queue.includes(id)&&(player(id).customUsed||0)<2);
 for(const action of ['approved','declined']){const button=node('button',action==='approved'?'dark':'quiet',action==='approved'?'Approve · queue last':'Decline');button.disabled=action==='approved'&&!eligible();button.onclick=async()=>{if(button.disabled)return;button.disabled=true;try{if(action==='approved'){if(!eligible())return;await window.approveCustomLineup(r.players,r.id);}else await exclusive(()=>CheckinAPI.call('decide',{p_session:shared.id,p_owner:shared.owner,p_request:r.id,p_status:'declined'}));await exclusive(()=>loadRequests(shared,closed));}catch(e){message(e.message);}finally{button.disabled=false;}};row.append(button);}list.append(row);});}
 $('share-stop').onclick=()=>{if($('share-stop').disabled||!state.checkin)return;$('share-stop').disabled=true;return exclusive(async()=>{const shared=state.checkin;if(!shared)return;
-try{await CheckinAPI.call('close',{p_session:shared.id,p_owner:shared.owner});const received=await sync();if(received&&state.checkin===shared){delete state.checkin;previous=null;persist();render();show();}}
+try{await CheckinAPI.call('close',{p_session:shared.id,p_owner:shared.owner});const received=await sync();if(received&&state.checkin===shared){delete state.checkin;guessCounts=null;previous=null;persist();render();show();}}
 catch(e){message(e.message+' Check-in has not been closed.');}}).finally(()=>{$('share-stop').disabled=false;});};
 $('share-copy').onclick=async()=>{try{await navigator.clipboard.writeText($('share-link').value);message('Join link copied.');}catch{$('share-link').select();message('Select and copy the join link above.');}};
 const reset=$('reset').onclick;$('reset').onclick=()=>{if(state.checkin){message('Close QR check-in before resetting this session.');panel.scrollIntoView({behavior:'smooth'});return;}reset();};

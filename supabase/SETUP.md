@@ -40,3 +40,7 @@ The player-page migration also maintains per-player custom-lineup counts and an 
 ## Leaving from the player page
 
 `player-leave.sql` was added on 2026-11-10. Run it after `player-page.sql`. It adds a per-check-in `leaves` counter and `sideout_leave`, which requires the player's private device key, so only the phone that checked in can leave as that player. `sideout_poll` now returns the counter, and `sideout_publish` keeps the organizer's `left` list so phones can show it. A counter rather than a flag lets a player leave again after the organizer returns them. The file is idempotent. Until it is applied, the player page explains that leaving isn't available and the organizer can still remove players.
+
+## Match guesses
+
+`match-guesses.sql` was added on 2026-11-10. Run it after `branding.sql` and `player-leave.sql`. Each game on court now carries a random `game` id in the published state. The migration adds a private `guesses` table (one row per player per game), `sideout_guess` (device key required, only for games currently on court, not for players in that game, at most 5,000 guesses per session), and guess counts for active games in both `sideout_poll` and `sideout_player_view`. The file is idempotent. Until it is applied, no guess buttons or counts appear and nothing else changes.

@@ -57,6 +57,17 @@ button:focus-visible,input:focus-visible,select:focus-visible{outline:3px solid 
 #request-fields label{min-width:0;font-weight:500;font-size:13px;color:var(--muted)}
 #request-form button{margin-top:12px}
 .footnote{font-size:13px;margin-top:18px}
+.guess{margin-top:12px}
+.guess-title{color:#fff;font-weight:700;font-size:14px;margin:0 0 6px}
+.picks{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.pick{display:flex;justify-content:space-between;align-items:center;gap:8px;background:color-mix(in srgb,#fff 12%,var(--apron));color:#fff;border:1.5px solid color-mix(in srgb,#fff 40%,var(--apron));padding:10px 12px;font-weight:650;white-space:normal;text-align:left;overflow-wrap:anywhere}
+.pick.mine{background:var(--ball);color:var(--on-ball);border-color:var(--ball)}
+.pick:disabled{opacity:.7;cursor:default}
+.pick.mine:disabled{opacity:1}
+.pick:not(:disabled):hover{border-color:#fff}
+.pick-count{font-stretch:125%;font-weight:900;font-size:18px;flex-shrink:0}
+.guess-note{color:var(--apron-text);font-size:12px;margin-top:6px}
+#guess-message{margin-top:10px}
 .leave{margin-top:16px;padding-top:14px;border-top:1px solid var(--rule)}
 .leave .secondary{margin-top:0}
 #leave-message{margin-top:8px}

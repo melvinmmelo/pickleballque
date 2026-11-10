@@ -18,6 +18,10 @@ Use **Remove** beside a waiting player to remove them from the list and queue af
 
 Data saves in localStorage in the current browser. Existing single-court sessions migrate to Court 01 with game counts and queue order preserved. Data does not sync across devices, browsers, or between the local file and hosted site. Clearing browser storage may erase the session. A warning appears when saving is unavailable.
 
+## Guess who wins
+
+While QR check-in is on, each game in progress shows **Who wins?** on the player page with a button for each team. Players who checked in from their phone get one guess per game and can change it until the game ends. Players in that game can't guess on it. On the organizer page, each court in play shows the number of guesses as a split bar under the court, with Team A on the left and Team B on the right like the drawing. Each new game starts with no guesses, and guesses close when the game is finished. Sideout does not record which team won, so guesses aren't scored. For a separate deployment, run `supabase/match-guesses.sql` after `branding.sql` and `player-leave.sql`.
+
 ## Leaving a session
 
 Players who checked in by scanning the QR can tap **Leave session** on the player page when they are done for the day. The organizer page moves them to **Left** within about five seconds. Their game count stays on the record, they no longer appear in the queue, and saved sessions list them as Left. A player on court can leave once their game ends; if a leave arrives mid-game, they move to Left when that court is finished instead of returning to the queue. The organizer can use **Return** to put someone back at the end of the queue, or **Remove** to delete them. Only the phone that checked in can leave as that player; manual entries and older check-ins ask the organizer. For a separate deployment, run `supabase/player-leave.sql` after `player-page.sql`.
