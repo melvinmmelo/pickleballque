@@ -60,7 +60,15 @@ main{max-width:1240px;margin:0 auto;padding:4px 20px 40px}
 .kitchen{grid-row:1/3;background:var(--kitchen)}
 .kitchen.left{grid-column:2;border-left:2px solid var(--line)}
 .kitchen.right{grid-column:3;border-right:2px solid var(--line)}
-.surface::after{content:"";position:absolute;left:calc(50% - 2px);top:-9px;bottom:-9px;width:4px;background:var(--ink);border-radius:2px}
+.surface::after{content:"";position:absolute;left:calc(50% - 2px);top:-9px;bottom:-9px;width:4px;background:var(--ink);border-radius:2px;transform:scaleY(var(--net,1));transform-origin:50% 100%}
+.kitchen.left{transform-origin:100% 50%}.kitchen.right{transform-origin:0 50%}
+.surface.building{outline-color:transparent}.surface.building .box,.surface.building .kitchen{border-color:transparent!important}
+.court-lines{position:absolute;inset:0;pointer-events:none;z-index:1}
+.court-lines .ln{position:absolute;background:var(--line)}
+.ln.top{left:-2px;right:-2px;top:-2px;height:2px;transform-origin:0 50%}.ln.right{top:-2px;bottom:-2px;right:-2px;width:2px;transform-origin:50% 0}
+.ln.bottom{left:-2px;right:-2px;bottom:-2px;height:2px;transform-origin:100% 50%}.ln.left{top:-2px;bottom:-2px;left:-2px;width:2px;transform-origin:50% 100%}
+.ln.kl{left:calc(100% * 15 / 44);top:0;bottom:0;width:2px;transform-origin:50% 0}.ln.kr{left:calc(100% * 29 / 44 - 2px);top:0;bottom:0;width:2px;transform-origin:50% 0}
+.ln.cl{left:0;width:calc(100% * 15 / 44);top:calc(50% - 2px);height:2px;transform-origin:0 50%}.ln.cr{left:calc(100% * 29 / 44);right:0;top:calc(50% - 2px);height:2px;transform-origin:100% 50%}
 .box{display:grid;place-items:center;padding:4px 10px;text-align:center;min-width:0}
 .box.top{grid-row:1;border-bottom:2px solid var(--line)}.box.bottom{grid-row:2}
 .box.a{grid-column:1}.box.b{grid-column:4}
@@ -263,13 +271,44 @@ showBrand();
 // Skipped entirely if GSAP did not load or the visitor prefers reduced motion.
 const hasMotion=()=>!!(window.gsap&&window.Flip)&&!matchMedia('(prefers-reduced-motion: reduce)').matches;
 if(window.gsap&&window.Flip)gsap.registerPlugin(Flip);
-let rendered=false;
+let rendered=false,intro=null,deferred=false;
+// Background updates (check-in sync, lineup counts) wait for the intro so it isn't cut short; taps still render at once.
+function softRender(){if(intro){deferred=true;return;}render();}
+// Page-load intro: each court is built in turn. The surround goes down, the number is stamped, the court is painted,
+// the kitchens fill from the net, the lines are drawn, the net goes up, and the players walk on.
+// Buttons only fade (never move), so they can be tapped straight away.
+// Line strips laid exactly over the court's own lines (2px, 44 x 20 ft geometry); each grows from where a painter would start.
+function courtLines(){const box=node('div','court-lines');box.setAttribute('aria-hidden','true');
+for(const cls of ['edge top','edge right','edge bottom','edge left','inner kl','inner kr','inner cl','inner cr'])box.append(node('span','ln '+cls));return box;}
+function buildCourts(){
+const tl=gsap.timeline({defaults:{ease:'power2.out'},onComplete:finish}),cards=[...document.querySelectorAll('#courts .court')];
+function finish(){for(const card of cards){card.querySelector('.surface')?.classList.remove('building');const state=card.querySelector('.state');if(state?.dataset.real){state.textContent=state.dataset.real;delete state.dataset.real;}}
+gsap.to('.court-lines',{opacity:0,duration:.25,onComplete:()=>document.querySelectorAll('.court-lines').forEach(el=>el.remove())});intro=null;if(deferred){deferred=false;render();}}
+cards.forEach((card,i)=>{const at=i*.3,surface=card.querySelector('.surface'),state=card.querySelector('.state'),lines=courtLines(),say=text=>()=>{if(state)state.textContent=text;};
+surface.classList.add('building');surface.append(lines);if(state)state.dataset.real=state.textContent;
+tl.fromTo(card,{opacity:0,scale:.97},{opacity:1,scale:1,duration:.35,clearProps:'transform,opacity'},at)
+.from(card.querySelector('.num'),{opacity:0,scale:1.9,duration:.4,ease:'back.out(2.2)',clearProps:'all'},at+.1)
+.call(say('Painting the court…'),null,at+.15)
+.fromTo(surface,{clipPath:'inset(0% 100% 0% 0%)'},{clipPath:'inset(0% 0% 0% 0%)',duration:.5,ease:'power1.inOut',clearProps:'clipPath'},at+.15)
+.from(card.querySelectorAll('.kitchen'),{scaleX:0,duration:.3,clearProps:'transform'},at+.55)
+.call(say('Drawing the lines…'),null,at+.6)
+.from(lines.querySelectorAll('.top,.bottom'),{scaleX:0,duration:.14,stagger:.28,ease:'none'},at+.6)
+.from(lines.querySelectorAll('.right,.left'),{scaleY:0,duration:.14,stagger:.28,ease:'none'},at+.74)
+.from(lines.querySelectorAll('.kl,.kr'),{scaleY:0,duration:.25,stagger:.05,ease:'power1.out'},at+.9)
+.from(lines.querySelectorAll('.cl,.cr'),{scaleX:0,duration:.25,stagger:.05,ease:'power1.out'},at+.95)
+.call(say('Raising the net…'),null,at+1.05)
+.fromTo(surface,{'--net':0},{'--net':1,duration:.35,ease:'back.out(2)'},at+1.05)
+.from(card.querySelectorAll('.player-chip,.preview'),{opacity:0,y:-10,duration:.35,stagger:.06,ease:'back.out(2)',clearProps:'all'},at+1.2)
+.call(()=>{if(state&&state.dataset.real){state.textContent=state.dataset.real;delete state.dataset.real;}},null,at+1.3)
+.from(card.querySelectorAll('.court-logo,.guesses,.actions,.court-foot'),{opacity:0,duration:.4,clearProps:'opacity'},at+1.25);});
+const end=Math.max(0,cards.length-1)*.3+1.3;
+tl.from('#add-court',{opacity:0,duration:.3,clearProps:'opacity'},end).from('#next li, #later li',{opacity:0,y:8,duration:.3,stagger:.04,clearProps:'all'},end).from('#roster tr',{opacity:0,duration:.3,stagger:{amount:.4},clearProps:'opacity'},end);
+intro=tl;}
 // Name positions by flip id, so only names that actually change place get the in-flight token style.
 const namePositions=()=>new Map(Array.from(document.querySelectorAll('span[data-flip-id]'),el=>{const r=el.getBoundingClientRect();return [el.dataset.flipId,r.left+r.top*1e4];}));
 function animate(before,places){
 if(!hasMotion())return;
-if(!before){const tl=gsap.timeline({defaults:{ease:'power2.out',clearProps:'all'}});
-tl.from('.court',{autoAlpha:0,y:14,duration:.4,stagger:.07}).from('.surface .player-chip, .surface .preview',{autoAlpha:0,scale:.6,duration:.35,stagger:.03,ease:'back.out(2)'},'-=.2').from('#next li',{autoAlpha:0,y:8,duration:.3,stagger:.04},'-=.25');return;}
+if(!before){buildCourts();return;}
 const moving=Array.from(document.querySelectorAll('span[data-flip-id]')).filter(el=>{const r=el.getBoundingClientRect(),was=places.get(el.dataset.flipId);return was!==undefined&&Math.abs(was-(r.left+r.top*1e4))>2;});
 moving.forEach(el=>el.classList.add('flying'));
 Flip.from(before,{targets:'[data-flip-id]',duration:.6,ease:'power3.inOut',stagger:.025,scale:true,prune:true,zIndex:5,onComplete:()=>moving.forEach(el=>el.classList.remove('flying')),
@@ -277,6 +316,7 @@ onEnter:els=>{gsap.fromTo(els,{autoAlpha:0,y:10},{autoAlpha:1,y:0,duration:.4,ea
 }
 
 function render(){
+if(intro){const running=intro;intro=null;deferred=false;running.progress(1).kill();}
 const before=rendered&&hasMotion()?Flip.getState('[data-flip-id]'):null,places=before?namePositions():null;
 $('session-count').replaceChildren(node('b','',String(state.completed)),` game${state.completed===1?'':'s'} played`);
 const gone=(state.left||[]).length,here=state.players.length-gone;
@@ -350,7 +390,7 @@ render();
 <script src="config.js?v=2026-11-10b"></script>
 <script src="vendor/qrcode.js"></script>
 <script src="checkin-api.js?v=2026-11-10b"></script>
-<script src="checkin.js?v=2026-11-10e"></script>
+<script src="checkin.js?v=2026-11-10f"></script>
 <script src="archives.js?v=2026-11-10c"></script>
 <script src="customize.js?v=2026-11-10b"></script>
 </body>

@@ -2,7 +2,7 @@
 
 A pickleball doubles queue with browser storage and support for multiple courts.
 
-Each court is drawn to real proportions, with players' names in their service boxes. The first open court shows the next four in place. When a game rotates, names move between the courts and the queue so you can see where everyone went. Motion uses GSAP (bundled in `vendor/gsap`) and is turned off when the device asks for reduced motion.
+Each court is drawn to real proportions, with players' names in their service boxes. The first open court shows the next four in place. When a game rotates, names move between the courts and the queue so you can see where everyone went. When the page loads, each court is built on screen: the court is painted, the lines are drawn, the net goes up, and the players walk on. Buttons work during the intro, and tapping one skips straight to the finished courts. Motion uses GSAP (bundled in `vendor/gsap`) and is turned off when the device asks for reduced motion.
 
 Open `index.html` directly, or visit https://melvinmmelo.github.io/pickleballque/.
 

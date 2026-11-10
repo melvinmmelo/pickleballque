@@ -5,6 +5,8 @@ panel.innerHTML='<div class="card-head"><h2>QR check-in</h2><button id="share-st
 // The QR panel sits below the queue; lineup requests appear above it, only while one is waiting.
 document.querySelector('.layout').after(panel);const requestsPanel=node('section','card requests');requestsPanel.innerHTML='<h2>Player lineup requests</h2><p class="helper">Approve to queue the selected four last. Finish or cancel any existing custom group first.</p><div id="player-requests"></div>';document.querySelector('.layout').before(requestsPanel);requestsPanel.hidden=true;
 const message=text=>$('share-message').textContent=text;
+// Background updates go through softRender so the page-load intro can finish; older pages without it just render.
+const paint=()=>typeof softRender==='function'?softRender():render();
 // One network task at a time. A click waits for an in-flight sync instead of being silently dropped.
 let waiting=0,lock=Promise.resolve();
 function exclusive(task){waiting++;const run=lock.then(()=>task()).finally(()=>{waiting--;});lock=run.catch(()=>{});return run;}
@@ -33,11 +35,11 @@ for(const arrival of result.arrivals){const id=arrival.id,count=Number(arrival.l
 if(state.courts.some(c=>c.current.includes(id))){pendingLeaves.add(id);continue;}
 shared.leaves[id]=count;changed=true;if(state.queue.includes(id)){state.queue=state.queue.filter(x=>x!==id);state.left=[...(state.left||[]),id];if((state.lineup||[]).includes(id))state.lineup=[];state.skipped=(state.skipped||[]).filter(x=>x!==id);departed.push(player(id).name);}}
 if(departed.length)$('announcement').textContent=departed.join(', ')+' left the session.';
-if(changed){previous=null;persist();render();}else if(changedView)render();
+if(changed){previous=null;persist();paint();}else if(changedView)paint();
 await publish(shared);await pushBrand(shared);await loadRequests(shared,result.closed);
 message((result.closed?'This QR is closed or expired. Close check-in here to enable a new QR.':'Check-in is on. Arrivals are up to date.')+(departed.length?' '+departed.join(', ')+' left the session.':'')+(brandNote?' '+brandNote:''));return true;
 }catch(e){message(e.message+' Manual entry still works.');return false;}}
-function applyCounts(counts){let changed=false;for(const p of state.players){const used=Math.max(p.customUsed||0,counts[p.id]||0);if(used!==(p.customUsed||0)){p.customUsed=used;changed=true;}const old=previous?.players.find(x=>x.id===p.id);if(old)old.customUsed=Math.max(old.customUsed||0,used);}if(changed){persist();render();}}
+function applyCounts(counts){let changed=false;for(const p of state.players){const used=Math.max(p.customUsed||0,counts[p.id]||0);if(used!==(p.customUsed||0)){p.customUsed=used;changed=true;}const old=previous?.players.find(x=>x.id===p.id);if(old)old.customUsed=Math.max(old.customUsed||0,used);}if(changed){persist();paint();}}
 async function publish(shared){if(state.checkin!==shared)return;const counts=await CheckinAPI.call('publish_live',{p_session:shared.id,p_owner:shared.owner,p_state:{players:state.players,queue:nextOrder(),courts:state.courts,completed:state.completed,lineup:state.lineup||[],next:nextPlayers(),left:state.left||[]}});if(state.checkin===shared)applyCounts(counts);return counts;}
 // Club branding goes to the shared session only when it changes. A database without the branding
 // migration is detected once and skipped quietly; players then keep the default look.
