@@ -20,7 +20,7 @@ try{const id=crypto.randomUUID(),owner=crypto.randomUUID().replaceAll('-','')+cr
 // Ensure browser storage works before creating a remote session.
 localStorage.setItem('sideout-storage-test','1');localStorage.removeItem('sideout-storage-test');
 const result=await CheckinAPI.call('create',{p_session:id,p_owner:owner,p_players:state.players.map(p=>({id:p.id,name:p.name}))});
-state.checkin={id,owner,seen:state.players.map(p=>p.id),expiresAt:result.expiresAt};previous=null;persist();render();show();await publish(state.checkin);await pushBrand(state.checkin);
+state.checkin={id,owner,seen:state.players.map(p=>p.id),expiresAt:result.expiresAt};previous=null;persist();render();show();await publish(state.checkin);await pushBrand(state.checkin);await pushSponsors(state.checkin);
 }catch(e){message(e.message);}finally{$('share-start').disabled=!CheckinAPI.configured();}});};
 function poll(){if(waiting||!state.checkin||!CheckinAPI.configured()||document.hidden)return;return exclusive(sync);}
 async function sync(){const shared=state.checkin;if(!shared)return false;
@@ -36,7 +36,7 @@ if(state.courts.some(c=>c.current.includes(id))){pendingLeaves.add(id);continue;
 shared.leaves[id]=count;changed=true;if(state.queue.includes(id)){state.queue=state.queue.filter(x=>x!==id);state.left=[...(state.left||[]),id];if((state.lineup||[]).includes(id))state.lineup=[];state.skipped=(state.skipped||[]).filter(x=>x!==id);departed.push(player(id).name);}}
 if(departed.length)$('announcement').textContent=departed.join(', ')+' left the session.';
 if(changed){previous=null;persist();paint();}else if(changedView)paint();
-await publish(shared);await pushBrand(shared);await loadRequests(shared,result.closed);
+await publish(shared);await pushBrand(shared);await pushSponsors(shared);await loadRequests(shared,result.closed);
 message((result.closed?'This QR is closed or expired. Close check-in here to enable a new QR.':'Check-in is on. Arrivals are up to date.')+(departed.length?' '+departed.join(', ')+' left the session.':'')+(brandNote?' '+brandNote:''));return true;
 }catch(e){message(e.message+' Manual entry still works.');return false;}}
 function applyCounts(counts){let changed=false;for(const p of state.players){const used=Math.max(p.customUsed||0,counts[p.id]||0);if(used!==(p.customUsed||0)){p.customUsed=used;changed=true;}const old=previous?.players.find(x=>x.id===p.id);if(old)old.customUsed=Math.max(old.customUsed||0,used);}if(changed){persist();paint();}}
@@ -47,6 +47,10 @@ const brandSent=new Map();let brandUnsupported=false,brandNote='';
 async function pushBrand(shared){if(brandUnsupported||!window.SideoutBrand||typeof brand==='undefined'||!brand||state.checkin!==shared)return;const plain=SideoutBrand.isDefault(brand),key=plain?'default':SideoutBrand.key(brand);if((brandSent.get(shared.id)??'default')===key)return;brandSent.set(shared.id,key);
 try{await CheckinAPI.call('set_brand',{p_session:shared.id,p_owner:shared.owner,p_brand:plain?null:{colors:brand.colors,clubLogo:brand.clubLogo,courtLogo:brand.courtLogo}});brandNote='';}catch(e){if(/set_brand|schema cache|does not exist|could not find/i.test(e.message))brandUnsupported=true;else brandNote='Players can’t see your colors and logos yet: '+e.message;}}
 const pendingLeaves=window.pendingLeaves=new Set();
+// Sponsor banners follow the same rule: sent only when they change, skipped quietly on databases without them.
+const sponsorsSent=new Map();let sponsorsUnsupported=false;
+async function pushSponsors(shared){if(sponsorsUnsupported||!window.SideoutSponsors||typeof brand==='undefined'||!brand||state.checkin!==shared)return;const list=brand.sponsors||[],key=list.length?SideoutSponsors.key(list):'none';if((sponsorsSent.get(shared.id)??'none')===key)return;sponsorsSent.set(shared.id,key);
+try{await CheckinAPI.call('set_sponsors',{p_session:shared.id,p_owner:shared.owner,p_sponsors:list.length?list:null});}catch(e){if(/set_sponsors|schema cache|does not exist|could not find/i.test(e.message))sponsorsUnsupported=true;else brandNote='Players can’t see your sponsor banners yet: '+e.message;}}
 let manualAttempt=null;
 window.approveCustomLineup=(chosen,requestId=null)=>{const main=document.querySelector('main');main.inert=true;return exclusive(async()=>{const eligible=()=>chosen.length===4&&new Set(chosen).size===4&&chosen.every(id=>state.queue.includes(id)&&(player(id).customUsed||0)<2);
 if(!requestId&&state.lineup?.length===4&&chosen.every((id,i)=>state.lineup[i]===id))return true;

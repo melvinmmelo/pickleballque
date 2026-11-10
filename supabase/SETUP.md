@@ -44,3 +44,7 @@ The player-page migration also maintains per-player custom-lineup counts and an 
 ## Match guesses
 
 `match-guesses.sql` was added on 2026-11-10. Run it after `branding.sql` and `player-leave.sql`. Each game on court now carries a random `game` id in the published state. The migration adds a private `guesses` table (one row per player per game), `sideout_guess` (device key required, only for games currently on court, not for players in that game, at most 5,000 guesses per session), and guess counts for active games in both `sideout_poll` and `sideout_player_view`. The file is idempotent. Until it is applied, no guess buttons or counts appear and nothing else changes.
+
+## Sponsor banners
+
+`sponsors.sql` was added on 2026-11-10. Run it after `match-guesses.sql`. It stores each QR session's sponsor banners (`sideout_set_sponsors`, organizer key required), lets players fetch them (`sideout_sponsors`), and adds `sponsorsVersion` to `sideout_player_view` so phones download banners only when they change. The server accepts at most six banners, each a base64 PNG, WebP, or JPEG of about 100 KB or less with a 1–60 character name and an optional `https://` link; other keys are dropped. The file is idempotent. Until it is applied, the organizer page still shows banners and players see none.

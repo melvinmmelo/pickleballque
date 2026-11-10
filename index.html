@@ -3,6 +3,7 @@
 <head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Sideout · Pickleball queue</title>
+<link rel="stylesheet" href="sponsors.css?v=2026-11-10h">
 <style>
 /* Archivo variable font, bundled so the app works offline (vendor/fonts, SIL OFL 1.1). */
 @font-face{font-family:Archivo;font-style:normal;font-weight:100 900;font-stretch:62% 125%;font-display:swap;src:url(vendor/fonts/archivo-latin-ext.woff2) format('woff2');unicode-range:U+0100-02BA,U+02BD-02C5,U+02C7-02CC,U+02CE-02D7,U+02DD-02FF,U+0304,U+0308,U+0329,U+1D00-1DBF,U+1E00-1E9F,U+1EF2-1EFF,U+2020,U+20A0-20AB,U+20AD-20C4,U+2113,U+2C60-2C7F,U+A720-A7FF}
@@ -170,6 +171,12 @@ input[type=color]{padding:2px;height:42px;cursor:pointer}
 .upload{display:inline-block;background:var(--ink);color:#fff;border-radius:10px;padding:9px 14px;font-weight:650;cursor:pointer;margin-right:12px}
 .upload:focus-within{outline:3px solid var(--court);outline-offset:2px}
 #brand-message{min-height:1.5em}
+.sponsor-row{display:grid;grid-template-columns:120px minmax(0,1fr) auto;gap:12px;align-items:center;padding:10px 0;border-bottom:1px solid var(--rule)}
+.sponsor-thumb{width:120px;height:44px;object-fit:contain;background:#fff;border:1px solid var(--rule);border-radius:8px}
+.sponsor-fields{display:grid;gap:6px}.sponsor-fields input{padding:8px 10px}
+.sponsor-actions{display:grid;gap:2px;justify-items:start}
+#sponsor-add{margin-top:12px}.upload.disabled{opacity:.45;cursor:not-allowed}
+@media (max-width:760px){.sponsor-row{grid-template-columns:1fr}.sponsor-thumb{width:100%;height:56px}.sponsor-actions{display:flex;gap:12px}}
 
 .footer{display:flex;flex-wrap:wrap;align-items:baseline;gap:8px 18px;margin-top:28px;font-size:14px;color:var(--muted)}
 
@@ -197,6 +204,7 @@ input[type=color]{padding:2px;height:42px;cursor:pointer}
   <nav><button class="tool" id="customize" type="button" hidden>Customize</button><a class="tool" href="#checkin">QR check-in</a><a class="tool" href="#saved">Saved sessions</a><button class="tool" id="undo" disabled>Undo</button></nav>
 </header>
 <main>
+<section id="sponsor-strip" class="sponsors" aria-label="Sponsors" hidden></section>
 <div id="notice" class="notice" role="alert" hidden></div>
 <section id="courts" class="courts" aria-label="Courts"></section>
 <div class="layout">
@@ -220,7 +228,8 @@ input[type=color]{padding:2px;height:42px;cursor:pointer}
 <!-- Bump ?v= whenever these files change so browsers never pair this page with a stale cached script. -->
 <script src="vendor/gsap/gsap.min.js?v=3.15.0"></script>
 <script src="vendor/gsap/Flip.min.js?v=3.15.0"></script>
-<script src="brand.js?v=2026-11-10b"></script>
+<script src="sponsors.js?v=2026-11-10h"></script>
+<script src="brand.js?v=2026-11-10g"></script>
 <script>
 'use strict';
 const KEY='sideout-queue-v1';
@@ -263,7 +272,9 @@ lastSplit.set(c.game,[a,b]);bar.append(node('b','',String(a)),split,node('b','',
 // Club branding lives under its own key, so Reset session and Undo never touch it.
 const BRAND_KEY='sideout-brand-v1';
 let brand=window.SideoutBrand?SideoutBrand.load(BRAND_KEY):null;
-function showBrand(){if(!brand)return;SideoutBrand.apply(brand);const logo=$('club-logo');logo.hidden=!brand.clubLogo;if(brand.clubLogo)logo.src=brand.clubLogo;else logo.removeAttribute('src');}
+let shownSponsors='';
+function showBrand(){if(!brand)return;SideoutBrand.apply(brand);const logo=$('club-logo');logo.hidden=!brand.clubLogo;if(brand.clubLogo)logo.src=brand.clubLogo;else logo.removeAttribute('src');
+if(window.SideoutSponsors){const list=brand.sponsors||[],k=SideoutSponsors.key(list);if(k!==shownSponsors){shownSponsors=k;SideoutSponsors.mount($('sponsor-strip'),list);}}}
 function setBrand(next,save=true){brand=SideoutBrand.clean(next);if(save){try{SideoutBrand.save(BRAND_KEY,brand);}catch{$('notice').hidden=false;$('notice').textContent='Branding could not be saved: browser storage is full. It will reset when this page reloads.';}}showBrand();render();}
 showBrand();
 
@@ -390,8 +401,8 @@ render();
 <script src="config.js?v=2026-11-10b"></script>
 <script src="vendor/qrcode.js"></script>
 <script src="checkin-api.js?v=2026-11-10b"></script>
-<script src="checkin.js?v=2026-11-10f"></script>
+<script src="checkin.js?v=2026-11-10g"></script>
 <script src="archives.js?v=2026-11-10c"></script>
-<script src="customize.js?v=2026-11-10b"></script>
+<script src="customize.js?v=2026-11-10g"></script>
 </body>
 </html>

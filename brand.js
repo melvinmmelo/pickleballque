@@ -11,13 +11,13 @@ const PRESETS=[
   {id:'night',name:'Night session',colors:{court:'#22405f',kitchen:'#2f587f',apron:'#12243a',accent:'#dcf24a'}},
 ];
 const KEYS=['court','kitchen','apron','accent'],HEX=/^#[0-9a-f]{6}$/i,IMG=/^data:image\/(png|webp|jpeg);base64,[A-Za-z0-9+/]+={0,2}$/,MAX_LOGO=120000,INK='#0f2438';
-const defaults=()=>({theme:'classic',colors:{...PRESETS[0].colors},clubLogo:null,courtLogo:null});
+const defaults=()=>({theme:'classic',colors:{...PRESETS[0].colors},clubLogo:null,courtLogo:null,sponsors:[]});
 const logo=v=>typeof v==='string'&&v.length<=MAX_LOGO&&IMG.test(v)?v:null;
 function clean(b){
   const d=defaults();if(!b||typeof b!=='object')return d;
   const colors={};for(const k of KEYS){const v=b.colors?.[k];colors[k]=typeof v==='string'&&HEX.test(v)?v.toLowerCase():d.colors[k];}
   const preset=PRESETS.find(p=>KEYS.every(k=>p.colors[k]===colors[k]));
-  return {theme:preset?preset.id:'custom',colors,clubLogo:logo(b.clubLogo),courtLogo:logo(b.courtLogo)};
+  return {theme:preset?preset.id:'custom',colors,clubLogo:logo(b.clubLogo),courtLogo:logo(b.courtLogo),sponsors:window.SideoutSponsors?SideoutSponsors.clean(b.sponsors):[]};
 }
 function luminance(hex){const [r,g,b]=[1,3,5].map(i=>parseInt(hex.slice(i,i+2),16)/255).map(v=>v<=.03928?v/12.92:((v+.055)/1.055)**2.4);return .2126*r+.7152*g+.0722*b;}
 function contrast(a,b){const [hi,lo]=[luminance(a),luminance(b)].sort((x,y)=>y-x);return (hi+.05)/(lo+.05);}

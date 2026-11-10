@@ -1,0 +1,18 @@
+/* Sponsor banner strip, shared by the organizer and player pages. */
+.sponsors{margin:0 0 20px}
+.sponsor-stage{position:relative;height:clamp(64px,11vw,130px);background:var(--surface,#fff);border-radius:14px;overflow:hidden}
+.sponsor-slide{position:absolute;inset:0;display:block;overflow:hidden;opacity:0;transition:opacity .7s ease}
+.sponsor-slide.on{opacity:1;z-index:1}
+/* The banner fits the strip; a blurred copy fills the space beside it, like letterboxing on TV. */
+.sponsor-slide img{position:absolute;display:block;width:100%;height:100%}
+.sponsor-slide .fill{inset:-24px;width:calc(100% + 48px);height:calc(100% + 48px);object-fit:cover;filter:blur(22px) saturate(1.1);opacity:.55}
+.sponsor-slide .main{inset:0;object-fit:contain}
+a.sponsor-slide:focus-visible{outline:3px solid var(--court,#2b5d8c);outline-offset:-3px}
+.sponsor-bar{display:flex;align-items:center;gap:2px;margin-top:4px;font-size:12px;color:var(--muted,#56697a)}
+.sponsor-label{margin-right:auto}
+.sponsor-dot{width:24px;height:24px;padding:0;border:0;background:none;display:grid;place-items:center;cursor:pointer}
+.sponsor-dot::before{content:"";width:8px;height:8px;border-radius:50%;background:var(--rule,#c6d2d9)}
+.sponsor-dot.on::before{background:var(--ink,#0f2438)}
+.sponsor-dot:focus-visible,.sponsor-toggle:focus-visible{outline:2px solid var(--court,#2b5d8c);outline-offset:1px;border-radius:6px}
+.sponsor-toggle{background:none;border:0;padding:4px 6px;margin-left:6px;font-size:12px;font-weight:650;color:var(--muted,#56697a);text-decoration:underline;text-underline-offset:2px;cursor:pointer}
+@media (prefers-reduced-motion:reduce){.sponsor-slide{transition:none}}

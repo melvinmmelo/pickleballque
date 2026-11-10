@@ -18,6 +18,10 @@ Use **Remove** beside a waiting player to remove them from the list and queue af
 
 Data saves in localStorage in the current browser. Existing single-court sessions migrate to Court 01 with game counts and queue order preserved. Data does not sync across devices, browsers, or between the local file and hosted site. Clearing browser storage may erase the session. A warning appears when saving is unavailable.
 
+## Sponsor banners
+
+Open **Customize** and use **Sponsor banners** to add up to six banners, like ads during a broadcast. Each banner needs a sponsor name (also read aloud by screen readers) and can have an https link. Wide images work best, about 4 to 1 (for example 1200 × 300); they are resized in the browser and stored as small images. Banners take turns at the top of the page every 8 seconds with a crossfade. Dots show a specific banner, **Pause** stops the rotation, and hovering also holds it. While QR check-in is on, players see the same banners at the top of the player page, downloaded once and again only after a change. **Reset colors and logos** keeps the banners. For a separate deployment, run `supabase/sponsors.sql` after `match-guesses.sql`.
+
 ## Guess who wins
 
 While QR check-in is on, each game in progress shows **Who wins?** on the player page with a button for each team. Players who checked in from their phone get one guess per game and can change it until the game ends. Players in that game can't guess on it. On the organizer page, each court in play shows the number of guesses as a split bar under the court, with Team A on the left and Team B on the right like the drawing. Each new game starts with no guesses, and guesses close when the game is finished. Sideout does not record which team won, so guesses aren't scored. For a separate deployment, run `supabase/match-guesses.sql` after `branding.sql` and `player-leave.sql`.
