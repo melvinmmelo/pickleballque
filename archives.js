@@ -1,7 +1,7 @@
 'use strict';
 (()=>{
 const ARCHIVES='sideout-archives-v1',OWNER='sideout-archive-owner-v1';
-const section=node('section','card');section.style.marginTop='22px';
+const section=node('section','card');section.id='saved';
 section.innerHTML='<div class="card-head"><h2>Saved sessions</h2><button id="archive-refresh" class="quiet">Refresh saved list</button></div><form id="archive-form" class="entry"><label for="archive-name" class="sr-only">Session name</label><input id="archive-name" maxlength="80" placeholder="Session name (optional)"><button class="dark" id="archive-save">Save session</button></form><p class="helper">Save a snapshot of players, game counts, courts, and queue order. Resetting the live session keeps these copies. Cloud access is tied to this browser; download important sessions before clearing browser data.</p><p id="archive-message" role="status" class="helper"></p><div id="archive-list"></div><dialog id="archive-view"><div class="card-head"><h2 id="archive-title"></h2><button id="archive-dismiss" aria-label="Close saved session">Close</button></div><div id="archive-content"></div></dialog>';
 document.querySelector('.footer').before(section);
 const msg=text=>$('archive-message').textContent=text;

@@ -1,1 +1,67 @@
-*{box-sizing:border-box}body{margin:0;background:#f5f6f1;color:#17382f;font:15px system-ui,sans-serif}header{display:flex;justify-content:space-between;padding:22px max(20px,calc((100vw - 940px)/2));background:white;border-bottom:1px solid #dfe5da}header b{font-size:24px}header span{color:#69786e}main{max-width:980px;margin:auto;padding:28px 20px}h1{font-size:32px;letter-spacing:-1px}h2{font-size:19px}p{line-height:1.6;color:#69786e}.card{background:white;padding:22px;border:1px solid #dfe5da;border-radius:16px;margin-top:20px}.grid{display:grid;grid-template-columns:1fr 1fr;gap:18px}.entry{display:flex;gap:8px}input,select,button{font:inherit;border-radius:9px;padding:12px}input,select{border:1px solid #dbe1d4;background:#fafbf8;width:100%;min-width:0;margin:8px 0}button{border:0;background:#204e3c;color:white;font-weight:650;cursor:pointer;white-space:nowrap}button:disabled{opacity:.45;cursor:not-allowed}button:focus-visible,input:focus-visible,select:focus-visible{outline:3px solid #b0cc53}.secondary{background:#e6ecdf;color:#17382f}.row{display:flex;justify-content:space-between;gap:12px;padding:12px 0;border-bottom:1px solid #edf0e9;overflow-wrap:anywhere}.row span:first-child{min-width:0}.muted{color:#69786e;font-size:12px}.court{background:#204e3c;color:white;padding:16px;border-radius:12px;margin-top:14px;overflow-wrap:anywhere}.court p{color:#d6e7cd}.turn-count{font-size:34px;font-weight:800;margin-bottom:0}.tag{display:inline-block;padding:5px 9px;border-radius:20px;background:#d6ed89;font-size:12px}.footnote{font-size:12px}#request-fields label{min-width:0}#request-form button{margin-top:12px}#my-turn{margin-top:15px}@media(max-width:600px){.grid{grid-template-columns:1fr;gap:0}#request-fields{gap:8px}.entry{flex-wrap:wrap}.entry button{width:100%}.card{padding:18px}h1{font-size:28px}}
+/* Player view in the Court plan style. Archivo is bundled in vendor/fonts (SIL OFL 1.1). */
+@font-face{font-family:Archivo;font-style:normal;font-weight:100 900;font-stretch:62% 125%;font-display:swap;src:url(vendor/fonts/archivo-latin-ext.woff2) format('woff2');unicode-range:U+0100-02BA,U+02BD-02C5,U+02C7-02CC,U+02CE-02D7,U+02DD-02FF,U+0304,U+0308,U+0329,U+1D00-1DBF,U+1E00-1E9F,U+1EF2-1EFF,U+2020,U+20A0-20AB,U+20AD-20C4,U+2113,U+2C60-2C7F,U+A720-A7FF}
+@font-face{font-family:Archivo;font-style:normal;font-weight:100 900;font-stretch:62% 125%;font-display:swap;src:url(vendor/fonts/archivo-latin.woff2) format('woff2');unicode-range:U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD}
+:root{--page:#E6ECEF;--ink:#0F2438;--muted:#56697A;--rule:#C6D2D9;--surface:#FFFFFF;--court:#2B5D8C;--kitchen:#3B74A6;--apron:#2E7553;--apron-text:#CFE6D9;--line:#FFFFFF;--ball:#DCF24A}
+*{box-sizing:border-box}
+body{margin:0;background:var(--page);color:var(--ink);font:15px/1.45 Archivo,ui-sans-serif,system-ui,sans-serif;font-synthesis:none}
+header{display:flex;justify-content:space-between;align-items:baseline;max-width:980px;margin:0 auto;padding:20px}
+header b{font-stretch:125%;font-weight:850;font-size:26px;letter-spacing:-.02em}
+header span{color:var(--muted)}
+main{max-width:980px;margin:0 auto;padding:0 20px 40px}
+h1{font-stretch:112%;font-weight:800;font-size:30px;letter-spacing:-.02em;margin:8px 0 4px}
+h2{font-stretch:112%;font-weight:800;font-size:20px;letter-spacing:-.01em;margin:0 0 10px}
+p{line-height:1.5;color:var(--muted);margin:0}
+.card{background:var(--surface);padding:20px 22px;border-radius:16px;margin-top:18px}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+.entry{display:flex;gap:8px}
+label{font-weight:650}
+input,select,button{font:inherit;color:inherit;border-radius:10px;padding:12px 14px}
+input,select{border:1px solid var(--rule);background:var(--surface);width:100%;min-width:0;margin:8px 0}
+button{border:0;background:var(--ink);color:#fff;font-weight:700;cursor:pointer;white-space:nowrap}
+button:disabled{opacity:.45;cursor:not-allowed}
+button:focus-visible,input:focus-visible,select:focus-visible{outline:3px solid var(--court);outline-offset:2px}
+.secondary{background:var(--surface);color:var(--ink);border:1px solid var(--rule);margin-top:16px}
+#live-status{margin-bottom:4px}
+#message{margin-top:8px}
+
+/* Your turn: the number of games ahead is the one big element on this page */
+#my-turn{margin-top:14px}
+#my-turn h2{margin:4px 0 6px}
+.turn-count{font-stretch:125%;font-weight:900;font-size:46px;line-height:1;letter-spacing:-.02em;color:var(--court);margin:10px 0 0}
+.tag{display:inline-block;padding:5px 10px;border-radius:999px;background:var(--ball);color:var(--ink);font-size:13px;font-weight:650}
+
+/* Live courts, drawn to pickleball proportions */
+#live-courts{display:grid;gap:14px}
+.court{background:var(--apron);color:#fff;border-radius:14px;padding:12px 14px 14px}
+.court-head{display:flex;align-items:baseline;gap:10px;margin-bottom:10px}
+.num{font-stretch:125%;font-weight:900;font-size:32px;line-height:.9}
+.state{color:var(--apron-text);font-size:13px}
+.surface{position:relative;aspect-ratio:44/20;background:var(--court);outline:2px solid var(--line);display:grid;grid-template-columns:15fr 7fr 7fr 15fr;grid-template-rows:1fr 1fr}
+.kitchen{grid-row:1/3;background:var(--kitchen)}
+.kitchen.left{grid-column:2;border-left:2px solid var(--line)}
+.kitchen.right{grid-column:3;border-right:2px solid var(--line)}
+.surface::after{content:"";position:absolute;left:calc(50% - 2px);top:-7px;bottom:-7px;width:4px;background:var(--ink);border-radius:2px}
+.box{display:grid;place-items:center;padding:3px 6px;text-align:center;min-width:0}
+.box.top{grid-row:1;border-bottom:2px solid var(--line)}.box.bottom{grid-row:2}
+.box.a{grid-column:1}.box.b{grid-column:4}
+.chip{font-weight:650;font-size:14px;line-height:1.15;overflow-wrap:anywhere;max-width:100%}
+.chip.me{background:var(--ball);color:var(--ink);padding:2px 6px;border-radius:6px}
+
+.row{display:flex;justify-content:space-between;gap:12px;padding:10px 0;border-bottom:1px solid var(--rule);overflow-wrap:anywhere}
+.row:last-child{border-bottom:0}
+.row span:first-child{min-width:0;font-weight:600}
+.muted{color:var(--muted);font-size:13px}
+#request-fields label{min-width:0;font-weight:500;font-size:13px;color:var(--muted)}
+#request-form button{margin-top:12px}
+.footnote{font-size:13px;margin-top:18px}
+
+@media (max-width:600px){
+  header{padding:16px}
+  main{padding:0 16px 32px}
+  .grid{grid-template-columns:1fr;gap:0}
+  #request-fields{gap:8px}
+  .entry{flex-wrap:wrap}
+  .entry button{width:100%}
+  .card{padding:18px}
+  h1{font-size:26px}
+}

@@ -4,24 +4,178 @@
 <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Sideout · Pickleball queue</title>
 <style>
-:root{font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;color:#17382f;background:#f5f6f1;font-synthesis:none}*{box-sizing:border-box}body{margin:0}button,input{font:inherit}button{cursor:pointer;border:0;border-radius:9px;padding:12px 17px;font-weight:650;background:#e9ede6;color:#17382f}button:hover{filter:brightness(.95)}button:disabled{opacity:.4;cursor:not-allowed}button:focus-visible,input:focus-visible{outline:3px solid #b0cc53;outline-offset:3px}.primary{background:#d6ed89;color:#17382f}.dark{background:#204e3c;color:white}.quiet{background:transparent;font-size:13px;padding:8px}.danger{color:#a74636}header{border-bottom:1px solid #dce2d7;background:#fff;padding:22px max(24px,calc((100vw - 1120px)/2));display:flex;align-items:center;justify-content:space-between;gap:15px}.brand{font-size:24px;font-weight:800;letter-spacing:-1px}.brand span{display:inline-grid;place-items:center;background:#d6ed89;border-radius:50%;width:32px;height:32px;margin-right:10px;font-size:20px}.saved{font-size:12px;color:#617367}main{max-width:1168px;margin:auto;padding:38px 24px}h1{font-size:32px;letter-spacing:-1px;margin:0 0 8px}p{color:#69786e;line-height:1.55;margin:0}h2{font-size:18px;margin:0}.intro{display:flex;justify-content:space-between;align-items:center;margin-bottom:28px;gap:16px}.session{font-size:13px;white-space:nowrap}.layout{display:grid;grid-template-columns:minmax(0,1.65fr) minmax(300px,1fr);gap:22px}.stack{display:grid;gap:22px;align-content:start}.card{background:#fff;border:1px solid #dfe5da;border-radius:18px;padding:24px}.card-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:22px;gap:12px}.eyebrow{font-size:11px;font-weight:750;letter-spacing:1.7px;text-transform:uppercase}.pill{font-size:11px;padding:6px 10px;border-radius:30px;background:#ecf1e8;white-space:nowrap}.court-card{background:#1f493b;color:#fff;border-color:#1f493b}.court-card .pill{background:#355e4f;color:#e2efcd}.court{border:1px solid #77927d;border-radius:8px;min-height:235px;position:relative;display:grid;grid-template-columns:1fr 1fr;background:#285442;overflow:hidden}.court:before{content:"";position:absolute;left:calc(50% - 1px);top:0;bottom:0;border-left:2px dashed #a8ba9d}.team{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;padding:28px 12px;min-width:0}.player-chip{padding:12px 16px;border-radius:8px;background:#f0f5e5;color:#204332;font-weight:700;max-width:100%;overflow-wrap:anywhere;text-align:center;min-width:100px}.team-label{font-size:10px;color:#bbcdb6;letter-spacing:1.4px}.empty-court{grid-column:1/-1;z-index:1;text-align:center;align-self:center;background:#285442;padding:20px}.empty-court strong{display:block;font-size:20px;margin-bottom:8px}.empty-court p{color:#c1d1c2;font-size:14px}.court-actions{display:flex;justify-content:space-between;align-items:center;gap:14px;margin-top:20px}.court-actions{flex-wrap:wrap}.court-actions p{font-size:12px;color:#c1d1c2;flex:1 1 220px}.court-buttons{display:flex;gap:10px;flex-wrap:wrap;justify-content:flex-end;margin-left:auto}.finish-only{background:transparent;color:#e2efcd;border:1px solid #77927d}.next-list{display:grid;grid-template-columns:1fr 1fr;gap:10px}.queue-person{display:flex;align-items:center;gap:10px;padding:13px;background:#f3f5ef;border-radius:10px;min-width:0}.num{font-size:12px;color:#77866c}.name{font-weight:650;overflow-wrap:anywhere;min-width:0}.helper{font-size:12px;margin-top:16px}.entry{display:flex;gap:8px}input{width:100%;min-width:0;padding:12px;border:1px solid #dbe1d4;border-radius:9px;background:#fafbf8;color:#17382f}.entry button{white-space:nowrap}.roster{margin-top:18px}.row{display:flex;align-items:center;gap:12px;padding:14px 0;border-bottom:1px solid #edf0e9}.row:last-child{border-bottom:0}.avatar{width:34px;height:34px;border-radius:50%;display:grid;place-items:center;background:#edf1e7;font-size:12px;font-weight:700;flex-shrink:0}.person{flex:1;min-width:0}.status{font-size:11px;color:#7d8979;margin-top:3px}.count{text-align:center;font-size:18px;font-weight:700;min-width:38px}.count small{display:block;font-size:10px;color:#7d8979;font-weight:400}.remove{background:#fff0e8;color:#a74636;padding:9px 10px;font-size:12px;flex-shrink:0}.empty{padding:26px 12px;text-align:center;color:#819079;font-size:14px;border:1px dashed #dbe2d3;border-radius:10px}.footer{display:flex;justify-content:space-between;align-items:center;gap:16px;margin-top:25px;font-size:12px;color:#77856f}.notice{color:#9b3f2f;background:#fff0e8;padding:12px;border-radius:8px;margin-bottom:18px;font-size:13px}.sr-only{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0,0,0,0)}@media(max-width:760px){.layout{grid-template-columns:1fr}main{padding:26px 16px}header{padding:18px 16px}.intro{align-items:flex-start}h1{font-size:27px}.card{padding:20px}.session{font-size:11px}.court-actions{align-items:stretch;flex-direction:column}.court-actions p{flex:none}.court-buttons{flex-direction:column-reverse;margin-left:0}.footer{align-items:flex-start;flex-direction:column}.saved{max-width:145px;text-align:right}}
-.queue-person .name{flex:1}.skip{padding:7px 9px;font-size:11px;flex-shrink:0}@media(max-width:420px){.next-list{grid-template-columns:1fr}}
-select{font:inherit;width:100%;padding:10px;border:1px solid #dbe1d4;border-radius:8px;background:white;color:#17382f}.lineup-fields{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:14px 0}.lineup-fields label{font-size:12px}details{margin-top:18px}summary{cursor:pointer;font-weight:650}.lineup-actions{display:flex;gap:8px;flex-wrap:wrap}
-dialog{width:min(620px,90vw);max-height:85vh;overflow:auto;border:1px solid #dfe5da;border-radius:18px;padding:24px;color:#17382f}dialog::backdrop{background:#17382f80}#archive-content table{width:100%;border-collapse:collapse;margin:18px 0}#archive-content td,#archive-content th{text-align:left;border-bottom:1px solid #dfe5da;padding:10px 6px;overflow-wrap:anywhere}#archive-list .row{flex-wrap:wrap}
+/* Archivo variable font, bundled so the app works offline (vendor/fonts, SIL OFL 1.1). */
+@font-face{font-family:Archivo;font-style:normal;font-weight:100 900;font-stretch:62% 125%;font-display:swap;src:url(vendor/fonts/archivo-latin-ext.woff2) format('woff2');unicode-range:U+0100-02BA,U+02BD-02C5,U+02C7-02CC,U+02CE-02D7,U+02DD-02FF,U+0304,U+0308,U+0329,U+1D00-1DBF,U+1E00-1E9F,U+1EF2-1EFF,U+2020,U+20A0-20AB,U+20AD-20C4,U+2113,U+2C60-2C7F,U+A720-A7FF}
+@font-face{font-family:Archivo;font-style:normal;font-weight:100 900;font-stretch:62% 125%;font-display:swap;src:url(vendor/fonts/archivo-latin.woff2) format('woff2');unicode-range:U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD}
+
+/* Court plan: hard-court blue on apron green, white lines, ball yellow only for the main action. */
+:root{
+  --page:#E6ECEF;--ink:#0F2438;--muted:#56697A;--rule:#C6D2D9;--surface:#FFFFFF;
+  --court:#2B5D8C;--kitchen:#3B74A6;--apron:#2E7553;--apron-edge:#9CC7B0;--apron-text:#CFE6D9;--line:#FFFFFF;--ball:#DCF24A;
+  --danger:#9A3324;--danger-bg:#F7E4E0;
+  font-family:Archivo,ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif;color:var(--ink);background:var(--page);font-synthesis:none;
+}
+*{box-sizing:border-box}
+body{margin:0;font-size:15px;line-height:1.45}
+button,input,select{font:inherit;color:inherit}
+button{cursor:pointer;border:0;border-radius:10px;padding:11px 16px;font-weight:650;background:var(--surface);color:var(--ink)}
+button:disabled{opacity:.45;cursor:not-allowed}
+button:focus-visible,input:focus-visible,select:focus-visible,summary:focus-visible,a:focus-visible{outline:3px solid var(--court);outline-offset:2px}
+.court :focus-visible{outline-color:var(--ball)}
+p{margin:0;line-height:1.5}
+h2{font-stretch:112%;font-weight:800;font-size:22px;letter-spacing:-.01em;margin:0}
+.dark{background:var(--ink);color:#fff}
+.primary{background:var(--ball);color:var(--ink)}
+.quiet{background:none;padding:6px 2px;font-weight:650;text-decoration:underline;text-underline-offset:3px;border-radius:4px}
+.danger{color:var(--danger)}
+.helper{font-size:13px;color:var(--muted);margin-top:12px}
+.sr-only{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap}
+
+/* Top bar */
+.bar{display:flex;flex-wrap:wrap;align-items:center;gap:8px 20px;max-width:1240px;margin:0 auto;padding:20px}
+.mark{font-stretch:125%;font-weight:850;font-size:26px;letter-spacing:-.02em}
+.totals{color:var(--muted);display:flex;gap:16px}
+.totals b{color:var(--ink)}
+.bar nav{margin-left:auto;display:flex;gap:8px;flex-wrap:wrap}
+.tool{background:var(--surface);border:1px solid var(--rule);border-radius:8px;padding:9px 14px;font-weight:600;color:var(--ink);text-decoration:none;display:inline-block}
+
+main{max-width:1240px;margin:0 auto;padding:4px 20px 40px}
+.notice{color:var(--danger);background:var(--danger-bg);padding:12px 14px;border-radius:10px;margin-bottom:18px;font-size:14px}
+
+/* Courts sit side by side like a real facility */
+.courts{display:grid;grid-template-columns:repeat(auto-fill,minmax(330px,1fr));gap:18px}
+.court{background:var(--apron);color:#fff;border-radius:18px;padding:14px 18px 18px}
+.court-head{display:flex;align-items:baseline;gap:12px;margin-bottom:12px}
+.num{font-stretch:125%;font-weight:900;font-size:46px;line-height:.9;letter-spacing:-.02em}
+.state{color:var(--apron-text);font-size:14px}
+.court-head .quiet{margin-left:auto;color:var(--apron-text);font-size:13px}
+
+/* 44 x 20 ft playing surface: service area 15 ft, kitchen 7 ft, net, kitchen 7 ft, service area 15 ft */
+.surface{position:relative;aspect-ratio:44/20;background:var(--court);outline:2px solid var(--line);display:grid;grid-template-columns:15fr 7fr 7fr 15fr;grid-template-rows:1fr 1fr}
+.kitchen{grid-row:1/3;background:var(--kitchen)}
+.kitchen.left{grid-column:2;border-left:2px solid var(--line)}
+.kitchen.right{grid-column:3;border-right:2px solid var(--line)}
+.surface::after{content:"";position:absolute;left:calc(50% - 2px);top:-9px;bottom:-9px;width:4px;background:var(--ink);border-radius:2px}
+.box{display:grid;place-items:center;padding:4px 10px;text-align:center;min-width:0}
+.box.top{grid-row:1;border-bottom:2px solid var(--line)}.box.bottom{grid-row:2}
+.box.a{grid-column:1}.box.b{grid-column:4}
+.player-chip,.preview{position:relative;display:inline-block;font-weight:650;font-size:clamp(14px,1.35vw,18px);line-height:1.15;overflow-wrap:anywhere;max-width:100%}
+.preview{color:#ffffffa6;font-weight:500}
+/* A name in motion becomes a ball-yellow token so it stays readable over court and page alike */
+.player-chip.flying,.deck .name.flying{background:var(--ball);color:var(--ink);border-radius:6px;box-shadow:0 0 0 4px var(--ball)}
+
+.actions{display:grid;grid-template-columns:1fr 1.25fr;gap:10px;margin-top:18px}
+.actions.single{grid-template-columns:1fr}
+.actions button{border-radius:10px;padding:13px 12px;font-weight:700;font-size:15px}
+.finish-only{background:transparent;color:#fff;border:1.5px solid var(--apron-edge)!important}
+
+.add-court{border:2px dashed var(--rule);background:transparent;border-radius:18px;min-height:56px;color:var(--muted);font-weight:700;font-size:16px}
+.add-court:hover{border-color:var(--muted);color:var(--ink)}
+
+/* Lower area: queue and roster. .layout is also the anchor checkin.js inserts around. */
+.layout{display:grid;grid-template-columns:minmax(0,1.5fr) minmax(0,1fr);gap:40px;margin-top:36px;align-items:start}
+.head{display:flex;flex-wrap:wrap;align-items:baseline;gap:4px 14px;margin-bottom:6px}
+.head p{color:var(--muted)}
+
+.deck{list-style:none;margin:14px 0 0;padding:0;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}
+.deck li{background:var(--surface);border-radius:12px;padding:12px 14px;display:grid;grid-template-columns:auto 1fr;column-gap:10px;align-items:baseline;min-width:0}
+.deck .pos{grid-row:1/3;font-stretch:125%;font-weight:900;font-size:24px;color:var(--court)}
+.deck .name{position:relative;display:inline-block;justify-self:start;font-weight:700;font-size:17px;overflow-wrap:anywhere;min-width:0}
+.deck .meta{display:flex;justify-content:space-between;gap:6px;color:var(--muted);font-size:13px;grid-column:2}
+.deck .skip{background:none;padding:0;color:var(--ink);font-weight:600;font-size:13px;text-decoration:underline;text-underline-offset:2px}
+.deck li.empty{grid-column:1/-1;display:block;text-align:center;color:var(--muted);background:transparent;border:1.5px dashed var(--rule)}
+.later{margin-top:22px}
+.later h3{font-size:15px;margin:0;font-weight:700}
+.later .deck{margin-top:8px}
+.later .deck li{background:transparent;border:1.5px solid var(--rule)}
+.later .deck li.slot{border-style:dashed;color:var(--muted);display:block;font-size:14px}
+
+details{margin-top:16px}
+summary{cursor:pointer;font-weight:700;width:max-content;text-decoration:underline;text-underline-offset:3px}
+.lineup-fields{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:14px 0}
+.lineup-fields label{font-size:13px;color:var(--muted);display:grid;gap:4px}
+select{width:100%;padding:10px;border:1px solid var(--rule);border-radius:8px;background:var(--surface);color:var(--ink)}
+.lineup-actions{display:flex;gap:8px;flex-wrap:wrap}
+
+.entry{display:flex;gap:8px;margin:14px 0 6px}
+input{width:100%;min-width:0;padding:12px 14px;border:1px solid var(--rule);border-radius:10px;background:var(--surface);color:var(--ink)}
+.entry button{white-space:nowrap}
+.roster-table{width:100%;border-collapse:collapse;margin-top:8px}
+.roster-table td,.roster-table th{padding:10px 4px;border-bottom:1px solid var(--rule);text-align:left;vertical-align:baseline}
+.roster-table th{font-size:13px;color:var(--muted);font-weight:600}
+.roster-table td:first-child{overflow-wrap:anywhere}
+.roster-table .games{font-weight:800;font-stretch:112%;font-size:17px;width:56px}
+.roster-table .where,.roster-table .custom{color:var(--muted);font-size:14px}
+.roster-table .rm{text-align:right}
+.remove{background:none;color:var(--danger);padding:4px;font-weight:600}
+.roster-table td.empty{color:var(--muted);text-align:center;padding:24px 8px;border-bottom:0}
+
+/* Panels added by checkin.js and archives.js */
+.card{background:var(--surface);border-radius:16px;padding:22px 24px;margin-top:28px}
+.card-head{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;gap:12px;margin-bottom:10px}
+.card .row{display:flex;align-items:center;gap:12px;padding:12px 0;border-bottom:1px solid var(--rule)}
+.card .row:last-child{border-bottom:0}
+.person{flex:1;min-width:0}
+.name{font-weight:650;overflow-wrap:anywhere}
+.status{font-size:13px;color:var(--muted);margin-top:2px}
+.requests{border:2px solid var(--ball);margin-top:24px}
+.share-grid{display:grid;grid-template-columns:auto 1fr;gap:24px;align-items:start;margin-top:12px}
+.share-actions{display:flex;flex-wrap:wrap;align-items:center;gap:10px 16px;margin-top:10px}
+.share-actions a{color:var(--ink);font-weight:650}
+#share-link{margin-top:6px}
+dialog{width:min(620px,90vw);max-height:85vh;overflow:auto;border:0;border-radius:16px;padding:24px;color:var(--ink)}
+dialog::backdrop{background:#0F243880}
+#archive-content table{width:100%;border-collapse:collapse;margin:18px 0}
+#archive-content td,#archive-content th{text-align:left;border-bottom:1px solid var(--rule);padding:10px 6px;overflow-wrap:anywhere}
+#archive-list .row{flex-wrap:wrap}
+
+.footer{display:flex;flex-wrap:wrap;align-items:baseline;gap:8px 18px;margin-top:28px;font-size:14px;color:var(--muted)}
+
+@media (max-width:760px){
+  .bar{padding:16px}
+  .bar nav{margin-left:0;width:100%}
+  main{padding:4px 16px 32px}
+  .courts{grid-template-columns:1fr}
+  .num{font-size:38px}
+  .actions button{font-size:14px;padding:13px 8px}
+  .layout{grid-template-columns:1fr;gap:32px}
+  .deck{grid-template-columns:1fr 1fr}
+  .card{padding:18px}
+  .share-grid{grid-template-columns:1fr}
+  .roster-table .custom{display:none}
+}
 </style>
 </head>
 <body>
-<header><div class="brand"><span>↗</span>sideout</div><div class="saved" id="save-status">● Saved on this browser</div></header>
+<header class="bar">
+  <div class="mark">sideout</div>
+  <div class="totals"><span id="session-count"></span><span id="player-count"></span></div>
+  <nav><a class="tool" href="#checkin">QR check-in</a><a class="tool" href="#saved">Saved sessions</a><button class="tool" id="undo" disabled>Undo</button></nav>
+</header>
 <main>
-<div class="intro"><div><h1>Less waiting. More playing.</h1><p>More courts. One fair queue. Everyone gets a turn.</p></div><span class="pill session" id="session-count">0 games completed</span></div>
 <div id="notice" class="notice" role="alert" hidden></div>
-<div class="layout"><div class="stack">
-<div class="card-head" style="margin-bottom:0"><h2>Courts</h2><button id="add-court" class="dark">+ Add court</button></div><div id="courts" class="stack"></div>
-<section class="card"><div class="card-head"><h2>Up next</h2><span class="pill" id="waiting-count">0 waiting</span></div><div id="next" class="next-list"></div><p id="lineup-status" class="helper"></p><details id="lineup-editor"><summary>Custom lineup</summary><p class="helper">Choose four waiting players. Team A: first two; Team B: last two. The selected four join the back as a group. Each player may join two approved custom lineups per session. Players already waiting go first.</p><form id="lineup-form"><div id="lineup-fields" class="lineup-fields"></div><p id="lineup-error" role="alert" class="helper danger"></p><div class="lineup-actions"><button class="dark" id="save-lineup">Queue lineup last</button><button type="button" id="clear-lineup">Cancel grouping</button></div></form></details><p class="helper">First in, first out. Skip moves a player to the back for the next game without changing their game count. With multiple courts, this list shows waiting players for the next available court.</p></section>
-</div><div class="stack"><section class="card"><div class="card-head"><h2>Players</h2><span class="pill" id="player-count">0 total</span></div><form id="add-form" class="entry"><label class="sr-only" for="nickname">Player nickname</label><input id="nickname" placeholder="Enter a nickname" maxlength="30" autocomplete="off" required><button class="dark" type="submit">+ Add</button></form><p class="helper">New arrivals join the back. Use Remove to take a waiting player off the list. For players on court, use Finish game only first.</p><div id="roster" class="roster"></div></section></div></div>
-<div class="footer"><span>Local to this browser · No account needed · Games count when finished</span><div><button class="quiet" id="undo" disabled>↶ Undo last action</button><button class="quiet danger" id="reset">Reset session</button></div></div>
+<section id="courts" class="courts" aria-label="Courts"></section>
+<div class="layout">
+  <section aria-labelledby="deck-h">
+    <div class="head"><h2 id="deck-h">On deck</h2><p id="waiting-count">0 waiting</p></div>
+    <ol id="next" class="deck" aria-label="Next game"></ol>
+    <div id="later" class="later"></div>
+    <p id="lineup-status" class="helper"></p>
+    <details id="lineup-editor"><summary>Custom lineup</summary><p class="helper">Choose four waiting players: the first two are Team A, the last two Team B. The four join the back of the queue together, and players already waiting go first. Each player can be in two approved custom lineups per session.</p><form id="lineup-form"><div id="lineup-fields" class="lineup-fields"></div><p id="lineup-error" role="alert" class="helper danger"></p><div class="lineup-actions"><button class="dark" id="save-lineup">Queue lineup last</button><button type="button" id="clear-lineup">Cancel grouping</button></div></form></details>
+  </section>
+  <section aria-labelledby="players-h">
+    <div class="head"><h2 id="players-h">Players</h2></div>
+    <form id="add-form" class="entry"><label class="sr-only" for="nickname">Player nickname</label><input id="nickname" placeholder="Add a nickname" maxlength="30" autocomplete="off" required><button class="dark" type="submit">Add</button></form>
+    <p class="helper">New players join the back of the queue. To remove someone on court, finish their game first.</p>
+    <table class="roster-table"><thead><tr><th>Name</th><th>Games</th><th>Now</th><th class="custom" title="Custom lineups used">Custom</th><th><span class="sr-only">Remove</span></th></tr></thead><tbody id="roster" class="roster"></tbody></table>
+  </section>
+</div>
+<div class="footer"><span id="save-status">Saved on this browser</span><button class="quiet danger" id="reset">Reset session</button></div>
 <div id="announcement" class="sr-only" role="status" aria-live="polite"></div>
 </main>
+<!-- Bump ?v= whenever these files change so browsers never pair this page with a stale cached script. -->
+<script src="vendor/gsap/gsap.min.js?v=3.15.0"></script>
+<script src="vendor/gsap/Flip.min.js?v=3.15.0"></script>
 <script>
 'use strict';
 const KEY='sideout-queue-v1';
@@ -41,7 +195,7 @@ const ids=s.players.map(p=>p.id),all=[...s.queue,...s.courts.flatMap(c=>c.curren
 return new Set(ids).size===ids.length&&all.length===ids.length&&new Set(all).size===ids.length&&all.every(id=>ids.includes(id))&&(s.skipped===undefined||(Array.isArray(s.skipped)&&s.skipped.every(id=>ids.includes(id))&&new Set(s.skipped).size===s.skipped.length));
 }
 try{const saved=localStorage.getItem(KEY);if(saved){const parsed=migrate(JSON.parse(saved));if(!valid(parsed))throw Error('Invalid saved queue');state=parsed;}}catch(e){let kept=false;try{const raw=localStorage.getItem(KEY);if(raw){localStorage.setItem(KEY+'-unreadable',raw);kept=true;}}catch{}$('notice').hidden=false;$('notice').textContent='Saved data could not be loaded. This page is starting with an empty queue.'+(kept?' The unreadable copy was kept in this browser as '+KEY+'-unreadable.':'');}
-function persist(){try{localStorage.setItem(KEY,JSON.stringify(state));$('save-status').textContent='● Saved on this browser';}catch(e){$('save-status').textContent='⚠ Changes are not saved';$('notice').hidden=false;$('notice').textContent='Browser storage is unavailable or full. Keep this page open: changes will be lost on refresh.';}}
+function persist(){try{localStorage.setItem(KEY,JSON.stringify(state));$('save-status').textContent='Saved on this browser';}catch(e){$('save-status').textContent='Changes are not being saved';$('notice').hidden=false;$('notice').textContent='Browser storage is unavailable or full. Keep this page open: changes will be lost on refresh.';}}
 function change(fn,message){previous=JSON.parse(JSON.stringify(state));fn();persist();render();$('announcement').textContent=message;}
 function node(tag,cls,text){const el=document.createElement(tag);if(cls)el.className=cls;if(text!==undefined)el.textContent=text;return el;}
 function nextOrder(returning=[],custom=true){const all=[...state.queue,...returning];const skipped=(state.skipped||[]).filter(id=>all.includes(id));const ordered=[...all.filter(id=>!skipped.includes(id)),...skipped];const chosen=custom?(state.lineup||[]).filter(id=>all.includes(id)):[];
@@ -52,36 +206,76 @@ if(behind.length>=needed)ahead.push(...behind.splice(0,needed));
 return [...ahead,...chosen,...behind];}
 function nextPlayers(returning=[]){const ordered=nextOrder(returning),chosen=state.lineup||[],first=ordered.slice(0,4);if(chosen.length===4&&first.some(id=>chosen.includes(id))&&!first.every(id=>chosen.includes(id)))return first.slice(0,first.findIndex(id=>chosen.includes(id)));return first;}
 function player(id){return state.players.find(p=>p.id===id);}
+const plural=(n,word)=>`${n} ${word}${n===1?'':'s'}`;
+
+// Motion: GSAP Flip moves each name from where it was to where it is now (deck to court, court to queue, skips, undo).
+// Skipped entirely if GSAP did not load or the visitor prefers reduced motion.
+const hasMotion=()=>!!(window.gsap&&window.Flip)&&!matchMedia('(prefers-reduced-motion: reduce)').matches;
+if(window.gsap&&window.Flip)gsap.registerPlugin(Flip);
+let rendered=false;
+// Name positions by flip id, so only names that actually change place get the in-flight token style.
+const namePositions=()=>new Map(Array.from(document.querySelectorAll('span[data-flip-id]'),el=>{const r=el.getBoundingClientRect();return [el.dataset.flipId,r.left+r.top*1e4];}));
+function animate(before,places){
+if(!hasMotion())return;
+if(!before){const tl=gsap.timeline({defaults:{ease:'power2.out',clearProps:'all'}});
+tl.from('.court',{autoAlpha:0,y:14,duration:.4,stagger:.07}).from('.surface .player-chip, .surface .preview',{autoAlpha:0,scale:.6,duration:.35,stagger:.03,ease:'back.out(2)'},'-=.2').from('#next li',{autoAlpha:0,y:8,duration:.3,stagger:.04},'-=.25');return;}
+const moving=Array.from(document.querySelectorAll('span[data-flip-id]')).filter(el=>{const r=el.getBoundingClientRect(),was=places.get(el.dataset.flipId);return was!==undefined&&Math.abs(was-(r.left+r.top*1e4))>2;});
+moving.forEach(el=>el.classList.add('flying'));
+Flip.from(before,{targets:'[data-flip-id]',duration:.6,ease:'power3.inOut',stagger:.025,scale:true,prune:true,zIndex:5,onComplete:()=>moving.forEach(el=>el.classList.remove('flying')),
+onEnter:els=>{gsap.fromTo(els,{autoAlpha:0,y:10},{autoAlpha:1,y:0,duration:.4,ease:'power2.out',clearProps:'all'});const rows=els.filter(el=>el.tagName==='TR');if(rows.length)gsap.fromTo(rows,{backgroundColor:'#DCF24A'},{backgroundColor:'rgba(220,242,74,0)',duration:1.6,ease:'power1.out',clearProps:'backgroundColor'});}});
+}
+
 function render(){
-$('session-count').textContent=`${state.completed} game${state.completed===1?'':'s'} completed`;
-$('player-count').textContent=`${state.players.length} total`;
+const before=rendered&&hasMotion()?Flip.getState('[data-flip-id]'):null,places=before?namePositions():null;
+$('session-count').replaceChildren(node('b','',String(state.completed)),` game${state.completed===1?'':'s'} played`);
+$('player-count').replaceChildren(node('b','',String(state.players.length)),` player${state.players.length===1?'':'s'}`);
 $('waiting-count').textContent=`${state.queue.length} waiting`;
+const returning=state.courts.length===1?state.courts[0].current:[];
+const ready=nextPlayers(),firstOpen=state.courts.find(c=>!c.current.length);
 const courts=$('courts');courts.replaceChildren();
 state.courts.forEach(c=>{
-const card=node('section','card court-card');card.dataset.court=c.id;
-const head=node('div','card-head');head.append(node('h2','',`Court ${String(c.id).padStart(2,'0')}`),node('span','pill',c.current.length?'GAME IN PROGRESS':'READY WHEN YOU ARE'));
-const court=node('div','court');
-if(c.current.length){for(let t=0;t<2;t++){const team=node('div','team');team.append(node('span','team-label',`TEAM ${t===0?'A':'B'}`));c.current.slice(t*2,t*2+2).forEach(id=>team.append(node('div','player-chip',player(id).name)));court.append(team);}}
-else{const empty=node('div','empty-court');empty.append(node('strong','','The court is open'),node('p','',nextPlayers().length>=4?'Your next four players are ready.':'Waiting for enough players ahead of the custom group.'));court.append(empty);}
-const actions=node('div','court-actions'),buttons=node('div','court-buttons'),start=node('button','primary game-action',c.current.length?'Finish game & rotate':'Start game');start.disabled=!c.current.length&&nextPlayers().length<4;start.onclick=()=>play(c.id);
-if(c.current.length){const finish=node('button','finish-only','Finish game only');finish.type='button';finish.title='Count this game and leave the court open';finish.onclick=()=>play(c.id,false);buttons.append(finish);}buttons.append(start);
-actions.append(node('p','',c.current.length?'Rotate counts this game and starts the next four. Finish game only leaves the court open.':'Takes the first four from the shared queue.'),buttons);
-card.append(head,court,actions);
-if(state.courts.length>1){const remove=node('button','quiet','Remove court');remove.style.color='#e2efcd';remove.disabled=!!c.current.length;remove.title=c.current.length?'Use Finish game only before removing this court':'Remove this empty court';remove.onclick=()=>change(()=>{state.courts=state.courts.filter(x=>x.id!==c.id);},'Court removed.');card.append(remove);}
-courts.append(card);
+const playing=c.current.length>0,preview=!playing&&c===firstOpen&&ready.length===4,names=playing?c.current:preview?ready:[];
+const card=node('article','court');card.dataset.court=c.id;
+const head=node('header','court-head');
+head.append(node('span','num',String(c.id)),node('span','state',playing?'Game in progress':preview?'Open, next four shown':c!==firstOpen?'Open':state.queue.length<4?`Open, needs ${plural(4-state.queue.length,'more player')}`:'Open, waiting for players ahead of the custom group'));
+if(state.courts.length>1){const remove=node('button','quiet','Remove court');remove.type='button';remove.disabled=playing;remove.title=playing?'Use Finish game only before removing this court':'Remove this empty court';remove.onclick=()=>change(()=>{state.courts=state.courts.filter(x=>x.id!==c.id);},'Court removed.');head.append(remove);}
+const surface=node('div','surface');surface.setAttribute('role','img');
+surface.setAttribute('aria-label',playing?`Court ${c.id}: ${player(names[0]).name} and ${player(names[1]).name} versus ${player(names[2]).name} and ${player(names[3]).name}`:preview?`Court ${c.id} is open. Next up: ${names.map(id=>player(id).name).join(', ')}`:`Court ${c.id} is open`);
+const box=(i,pos,side)=>{const el=node('div',`box ${pos} ${side}`);const id=names[i];if(id){const label=node('span',playing?'player-chip':'preview',player(id).name);if(playing)label.dataset.flipId='p-'+id;el.append(label);}return el;};
+surface.append(box(0,'top','a'),box(1,'bottom','a'),node('div','kitchen left'),node('div','kitchen right'),box(2,'top','b'),box(3,'bottom','b'));
+const actions=node('div',playing?'actions':'actions single');
+if(playing){const finish=node('button','finish-only','Finish game only');finish.type='button';finish.title='Count this game and leave the court open';finish.onclick=()=>play(c.id,false);actions.append(finish);}
+const start=node('button','primary game-action',playing?'Finish game & rotate':'Start game');start.type='button';start.disabled=!playing&&ready.length<4;start.title=playing?'Count this game and start the next four':'Start a game with the next four';start.onclick=()=>play(c.id);actions.append(start);
+card.append(head,surface,actions);courts.append(card);
 });
-const returning=state.courts.length===1?state.courts[0].current:[];
-const next=$('next');next.replaceChildren();nextPlayers(returning).forEach((id,i)=>{const el=node('div','queue-person');el.append(node('span','num',String(i+1).padStart(2,'0')),node('span','name',player(id).name));if(returning.includes(id)){el.title='Returns after the current game';el.append(node('span','num','↻'));}const skip=node('button','skip','Skip');skip.type='button';skip.setAttribute('aria-label',`Skip ${player(id).name}`);skip.disabled=nextOrder(returning).length<=4;skip.title=skip.disabled?'At least five available players are needed to skip a game':'Move to the back for the next game';skip.onclick=()=>change(()=>{state.skipped=(state.skipped||[]).filter(x=>x!==id);state.skipped.push(id);state.lineup=[];if(state.queue.includes(id)){state.queue=state.queue.filter(x=>x!==id);state.queue.push(id);}},`${player(id).name} moved to the back for the next game.`);el.append(skip);next.append(el);});
-if(nextPlayers(returning).length<4){const empty=node('div','empty',`Waiting for ${4-nextPlayers(returning).length} more available players.`);empty.style.gridColumn='1 / -1';next.append(empty);}
+const addCourt=node('button','add-court','Add court');addCourt.type='button';addCourt.id='add-court';addCourt.onclick=()=>change(()=>{state.courts.push({id:Math.max(...state.courts.map(c=>c.id))+1,current:[]});},'Court added.');courts.append(addCourt);
+
+const order=nextOrder(returning),upNext=nextPlayers(returning),canSkip=order.length>4;
+const tile=(id,i,skip)=>{const p=player(id),back=returning.includes(id),li=node('li'),name=node('span','name',p.name);name.dataset.flipId=(back?'ret-':'p-')+id;
+const meta=node('span','meta');meta.append(node('span','',back?'On court now':plural(p.games,'game')));
+if(back)li.title='Returns after the current game';
+if(skip){const b=node('button','skip','Skip');b.type='button';b.setAttribute('aria-label',`Skip ${p.name}`);b.disabled=!canSkip;b.title=canSkip?'Move to the back for the next game':'At least five available players are needed to skip a game';b.onclick=()=>change(()=>{state.skipped=(state.skipped||[]).filter(x=>x!==id);state.skipped.push(id);state.lineup=[];if(state.queue.includes(id)){state.queue=state.queue.filter(x=>x!==id);state.queue.push(id);}},`${p.name} moved to the back for the next game.`);meta.append(b);}
+li.append(node('span','pos',String(i+1)),name,meta);return li;};
+const next=$('next');next.replaceChildren(...upNext.map((id,i)=>tile(id,i,true)));
+if(upNext.length<4)next.append(node('li','empty',`Waiting for ${plural(4-upNext.length,'more available player')}.`));
+const later=$('later');later.replaceChildren();
+if(upNext.length===4){const rest=order.slice(4,8),open=4-rest.length,list=node('ol','deck');list.setAttribute('aria-label','Game after');list.append(...rest.map((id,i)=>tile(id,i+4,false)));for(let i=0;i<open;i++)list.append(node('li','slot','Open slot'));later.append(node('h3','','Game after'),list);
+if(open)later.append(node('p','helper',state.courts.some(c=>c.current.length)?'Players finishing a game fill the open slots.':`Needs ${plural(open,'more player')}.`));}
+
 const roster=$('roster');roster.replaceChildren();
-if(!state.players.length)roster.append(node('div','empty','Your crew goes here. Add the first nickname.'));
-const ordered=[...state.courts.flatMap(c=>c.current),...nextOrder()];ordered.forEach(id=>{const p=player(id),playing=state.courts.find(c=>c.current.includes(id)),row=node('div','row'),person=node('div','person'),count=node('div','count',String(p.games));person.append(node('div','name',p.name),node('div','status',(playing?`Court ${String(playing.id).padStart(2,'0')}`:`Queue #${nextOrder().indexOf(id)+1}`)+` · Custom ${p.customUsed||0}/2`));count.append(node('small','','games'));const remove=node('button','remove','Remove');remove.type='button';remove.setAttribute('aria-label',`Remove ${p.name}`);remove.title=playing?'Use Finish game only before removing this player':'Remove player';remove.disabled=playing;remove.onclick=()=>{if(confirm(`Remove ${p.name} and their game count from this session?`))change(()=>{if((state.lineup||[]).includes(id))state.lineup=[];state.queue=state.queue.filter(x=>x!==id);state.players=state.players.filter(x=>x.id!==id);state.skipped=(state.skipped||[]).filter(x=>x!==id);},`${p.name} removed.`);};row.append(node('div','avatar',p.name.slice(0,2).toUpperCase()),person,count,remove);roster.append(row);});
+if(!state.players.length){const tr=node('tr'),td=node('td','empty','Add the first nickname to start the queue.');td.colSpan=5;tr.append(td);roster.append(tr);}
+const queued=nextOrder();[...state.courts.flatMap(c=>c.current),...queued].forEach(id=>{const p=player(id),on=state.courts.find(c=>c.current.includes(id)),tr=node('tr','row');tr.dataset.flipId='r-'+id;
+const remove=node('button','remove','Remove');remove.type='button';remove.setAttribute('aria-label',`Remove ${p.name}`);remove.title=on?'Use Finish game only before removing this player':'Remove player';remove.disabled=!!on;
+remove.onclick=()=>{if(confirm(`Remove ${p.name} and their game count from this session?`))change(()=>{if((state.lineup||[]).includes(id))state.lineup=[];state.queue=state.queue.filter(x=>x!==id);state.players=state.players.filter(x=>x.id!==id);state.skipped=(state.skipped||[]).filter(x=>x!==id);},`${p.name} removed.`);};
+const rm=node('td','rm');rm.append(remove);tr.append(node('td','',p.name),node('td','games',String(p.games)),node('td','where',on?`Court ${on.id}`:`Queue ${queued.indexOf(id)+1}`),node('td','custom',`${p.customUsed||0}/2`),rm);roster.append(tr);});
+
 const fields=$('lineup-fields'),draft=$('lineup-editor').open?Array.from(fields.querySelectorAll('select'),s=>s.value):[];fields.replaceChildren();
-for(let i=0;i<4;i++){const label=node('label','',`${i<2?'Team A':'Team B'} · Player ${i%2+1}`),select=node('select');select.name=`slot${i}`;select.required=true;select.setAttribute('aria-label',`Lineup player ${i+1}`);const placeholder=node('option','','Choose player');placeholder.value='';select.append(placeholder);nextOrder([],false).forEach(id=>{const option=node('option','',player(id).name);option.value=id;option.disabled=(player(id).customUsed||0)>=2;if(option.disabled)option.textContent+=' · limit reached';select.append(option);});select.value=draft[i]||(state.lineup||[])[i]||'';label.append(select);fields.append(label);}
+for(let i=0;i<4;i++){const label=node('label','',`${i<2?'Team A':'Team B'}, player ${i%2+1}`),select=node('select');select.name=`slot${i}`;select.required=true;select.setAttribute('aria-label',`Lineup player ${i+1}`);const placeholder=node('option','','Choose player');placeholder.value='';select.append(placeholder);nextOrder([],false).forEach(id=>{const option=node('option','',player(id).name);option.value=id;option.disabled=(player(id).customUsed||0)>=2;if(option.disabled)option.textContent+=' (limit reached)';select.append(option);});select.value=draft[i]||(state.lineup||[])[i]||'';label.append(select);fields.append(label);}
 $('save-lineup').disabled=state.queue.length<4;$('clear-lineup').disabled=!(state.lineup||[]).length;
-$('lineup-status').textContent=(state.lineup||[]).length?'Custom group queued last · Earlier players go first; the four stay together.':state.queue.length<4?'Custom lineup needs four waiting players.':'Normal queue · Skip clears a custom lineup.';
+$('lineup-status').textContent=(state.lineup||[]).length?'A custom group is queued last. Players ahead of it go first, and the four stay together.':state.queue.length<4?'A custom lineup needs four waiting players.':'Skip moves a player to the back for the next game without changing their game count. Skipping cancels a custom group.';
 $('lineup-error').textContent='';
 $('undo').disabled=!previous;
+animate(before,places);rendered=true;
 }
 $('add-form').onsubmit=e=>{e.preventDefault();const input=$('nickname'),name=cleanName(input.value);if(!visibleName(name)){input.setCustomValidity('Enter a nickname.');input.reportValidity();return;}if(state.players.some(p=>p.name.toLocaleLowerCase()===name.toLocaleLowerCase())){input.setCustomValidity('That nickname is already in the queue. Use a unique nickname.');input.reportValidity();return;}change(()=>{const id=globalThis.crypto?.randomUUID?.()||`${Date.now()}-${Math.random()}`;state.players.push({id,name,games:0});state.queue.push(id);},`${name} joined the queue.`);input.value='';input.focus();};
 $('nickname').oninput=()=>$('nickname').setCustomValidity('');
@@ -94,17 +288,15 @@ window.approveCustomLineup=async chosen=>{if(!chosen.every(id=>(player(id).custo
 change(()=>{state.queue=nextOrder([],false).filter(id=>!chosen.includes(id)).concat(chosen);state.lineup=[...chosen];state.lineupAtBack=true;state.skipped=(state.skipped||[]).filter(id=>!chosen.includes(id));for(const id of chosen)player(id).customUsed=(player(id).customUsed||0)+1;},'Custom lineup approved and queued last.');
 for(const old of previous.players){const now=player(old.id);if(now)old.customUsed=now.customUsed||0;}return true;};
 $('clear-lineup').onclick=()=>change(()=>{state.lineup=[];},'Grouping canceled. Current queue positions kept.');
-$('add-court').onclick=()=>change(()=>{state.courts.push({id:Math.max(...state.courts.map(c=>c.id))+1,current:[]});},'Court added.');
 $('undo').onclick=()=>{if(!previous)return;state=previous;previous=null;persist();render();$('announcement').textContent='Last action undone.';};
 $('reset').onclick=()=>{if(confirm('Reset this session? This clears all players and game counts.'))change(()=>{state=fresh();},'Session reset.');};
 window.addEventListener('storage',e=>{if(e.key!==KEY)return;try{const incoming=e.newValue?migrate(JSON.parse(e.newValue)):fresh();if(valid(incoming)){state=incoming;previous=null;render();}}catch{}});
 render();
 </script>
-<!-- Bump ?v= whenever these files change so browsers never pair this page with a stale cached script. -->
-<script src="config.js?v=2026-11-09b"></script>
+<script src="config.js?v=2026-11-10a"></script>
 <script src="vendor/qrcode.js"></script>
-<script src="checkin-api.js?v=2026-11-09b"></script>
-<script src="checkin.js?v=2026-11-09b"></script>
-<script src="archives.js?v=2026-11-09b"></script>
+<script src="checkin-api.js?v=2026-11-10a"></script>
+<script src="checkin.js?v=2026-11-10a"></script>
+<script src="archives.js?v=2026-11-10a"></script>
 </body>
 </html>
