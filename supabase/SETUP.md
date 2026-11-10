@@ -48,3 +48,14 @@ The player-page migration also maintains per-player custom-lineup counts and an 
 ## Sponsor banners
 
 `sponsors.sql` was added on 2026-11-10. Run it after `match-guesses.sql`. It stores each QR session's sponsor banners (`sideout_set_sponsors`, organizer key required), lets players fetch them (`sideout_sponsors`), and adds `sponsorsVersion` to `sideout_player_view` so phones download banners only when they change. The server accepts at most six banners, each a base64 PNG, WebP, or JPEG of about 100 KB or less with a 1–60 character name and an optional `https://` link; other keys are dropped. The file is idempotent. Until it is applied, the organizer page still shows banners and players see none.
+
+## Usage analytics
+
+`analytics.sql` was added on 2026-11-10. Run it after `sponsors.sql`. It adds a private `events` table, `sideout_track` (the app's event intake: batches of up to 25 allowlisted events, malformed items skipped, at most 3,000 events per minute overall, events older than 400 days purged), and `sideout_analytics`, which returns dashboard numbers only when given the developer key. Create a random key, keep it private, and store only its hash:
+
+```sql
+insert into sideout_private.settings(key,value) values('analytics_key_hash','<sha256 hex of your key>')
+on conflict (key) do update set value=excluded.value;
+```
+
+Days in the dashboard are counted in Philippine time. Until the migration is applied, the app works normally and simply records nothing.

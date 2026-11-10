@@ -179,6 +179,7 @@ input[type=color]{padding:2px;height:42px;cursor:pointer}
 @media (max-width:760px){.sponsor-row{grid-template-columns:1fr}.sponsor-thumb{width:100%;height:56px}.sponsor-actions{display:flex;gap:12px}}
 
 .footer{display:flex;flex-wrap:wrap;align-items:baseline;gap:8px 18px;margin-top:28px;font-size:14px;color:var(--muted)}
+.footer .stats{margin-left:auto;color:var(--muted);font-size:13px;font-weight:600}
 
 @media (max-width:760px){
   .bar{padding:16px}
@@ -197,7 +198,7 @@ input[type=color]{padding:2px;height:42px;cursor:pointer}
 }
 </style>
 </head>
-<body>
+<body data-page="organizer">
 <header class="bar">
   <div class="brand-row"><img id="club-logo" class="club-logo" alt="Club logo" hidden><div class="mark">sideout</div></div>
   <div class="totals"><span id="session-count"></span><span id="player-count"></span></div>
@@ -222,7 +223,7 @@ input[type=color]{padding:2px;height:42px;cursor:pointer}
     <table class="roster-table"><thead><tr><th>Name</th><th>Games</th><th>Now</th><th class="custom" title="Custom lineups used">Custom</th><th><span class="sr-only">Remove</span></th></tr></thead><tbody id="roster" class="roster"></tbody></table>
   </section>
 </div>
-<div class="footer"><span id="save-status">Saved on this browser</span><button class="quiet danger" id="reset">Reset session</button></div>
+<div class="footer"><span id="save-status">Saved on this browser</span><button class="quiet danger" id="reset">Reset session</button><button class="quiet stats" id="stats-toggle" type="button" hidden></button></div>
 <div id="announcement" class="sr-only" role="status" aria-live="polite"></div>
 </main>
 <!-- Bump ?v= whenever these files change so browsers never pair this page with a stale cached script. -->
@@ -263,6 +264,7 @@ return [...ahead,...chosen,...behind];}
 function nextPlayers(returning=[]){const ordered=nextOrder(returning),chosen=state.lineup||[],first=ordered.slice(0,4);if(chosen.length===4&&first.some(id=>chosen.includes(id))&&!first.every(id=>chosen.includes(id)))return first.slice(0,first.findIndex(id=>chosen.includes(id)));return first;}
 function player(id){return state.players.find(p=>p.id===id);}
 const plural=(n,word)=>`${n} ${word}${n===1?'':'s'}`;
+const stat=(kind,detail)=>window.SideoutStats?.track(kind,detail);
 let guessCounts=null;const lastSplit=new Map();
 // Players' guesses on who wins, as a split bar under the court: Team A on the left, Team B on the right, like the drawing.
 function guessBar(c){const g=guessCounts[c.game]||{},a=Number(g.A)||0,b=Number(g.B)||0,total=a+b,team=i=>`${player(c.current[i]).name} and ${player(c.current[i+1]).name}`;
@@ -351,7 +353,7 @@ const card=node('article','court');card.dataset.court=c.id;
 const head=node('header','court-head');
 head.append(node('span','num',String(c.id)),node('span','state',playing?'Game in progress':preview?'Open, next four shown':c!==firstOpen?'Open':state.queue.length<4?`Open, needs ${plural(4-state.queue.length,'more player')}`:'Open, waiting for players ahead of the custom group'));
 if(brand?.courtLogo){const logo=node('img','court-logo');logo.src=brand.courtLogo;logo.alt='';head.append(logo);}
-const foot=node('div','court-foot');if(state.courts.length>1){const remove=node('button','quiet','Remove court');remove.type='button';remove.disabled=playing;remove.title=playing?'Use Finish game only before removing this court':'Remove this empty court';remove.onclick=()=>{remove.disabled=true;packUpCourt(remove.closest('.court'),()=>change(()=>{state.courts=state.courts.filter(x=>x.id!==c.id);},'Court removed.'));};foot.append(remove);}
+const foot=node('div','court-foot');if(state.courts.length>1){const remove=node('button','quiet','Remove court');remove.type='button';remove.disabled=playing;remove.title=playing?'Use Finish game only before removing this court':'Remove this empty court';remove.onclick=()=>{remove.disabled=true;packUpCourt(remove.closest('.court'),()=>{change(()=>{state.courts=state.courts.filter(x=>x.id!==c.id);},'Court removed.');stat('court_removed');});};foot.append(remove);}
 const surface=node('div','surface');surface.setAttribute('role','img');
 surface.setAttribute('aria-label',playing?`Court ${c.id}: ${player(names[0]).name} and ${player(names[1]).name} versus ${player(names[2]).name} and ${player(names[3]).name}`:preview?`Court ${c.id} is open. Next up: ${names.map(id=>player(id).name).join(', ')}`:`Court ${c.id} is open`);
 const box=(i,pos,side)=>{const el=node('div',`box ${pos} ${side}`);const id=names[i];if(id){const label=node('span',playing?'player-chip':'preview',player(id).name);if(playing)label.dataset.flipId='p-'+id;el.append(label);}return el;};
@@ -361,7 +363,7 @@ if(playing){const finish=node('button','finish-only','Finish game only');finish.
 const start=node('button','primary game-action',playing?'Finish game & rotate':'Start game');start.type='button';start.disabled=!playing&&ready.length<4;start.title=playing?'Count this game and start the next four':'Start a game with the next four';start.onclick=()=>play(c.id);actions.append(start);
 card.append(head,surface,...(playing&&guessCounts&&c.game?[guessBar(c)]:[]),actions);if(foot.childElementCount)card.append(foot);courts.append(card);
 });
-const addCourt=node('button','add-court','Add court');addCourt.type='button';addCourt.id='add-court';addCourt.onclick=()=>change(()=>{state.courts.push({id:Math.max(...state.courts.map(c=>c.id))+1,current:[]});},'Court added.');courts.append(addCourt);
+const addCourt=node('button','add-court','Add court');addCourt.type='button';addCourt.id='add-court';addCourt.onclick=()=>{change(()=>{state.courts.push({id:Math.max(...state.courts.map(c=>c.id))+1,current:[]});},'Court added.');stat('court_added');};courts.append(addCourt);
 
 const order=nextOrder(returning),upNext=nextPlayers(returning),canSkip=order.length>4;
 const tile=(id,i,skip)=>{const p=player(id),back=returning.includes(id),li=node('li'),name=node('span','name',p.name);name.dataset.flipId=(back?'ret-':'p-')+id;
@@ -392,9 +394,10 @@ $('undo').disabled=!previous;
 lastCourtIds=courtIds;
 if(courtsChanged)reflowCourts(rects,Array.from(document.querySelectorAll('#courts .court')).filter(el=>!hadCourts.has(el.dataset.court)));else animate(before,places);rendered=true;
 }
-$('add-form').onsubmit=e=>{e.preventDefault();const input=$('nickname'),name=cleanName(input.value);if(!visibleName(name)){input.setCustomValidity('Enter a nickname.');input.reportValidity();return;}const same=state.players.find(p=>p.name.toLocaleLowerCase()===name.toLocaleLowerCase());if(same){input.setCustomValidity((state.left||[]).includes(same.id)?`${same.name} left earlier. Use Return in the player list to bring them back.`:'That nickname is already in the queue. Use a unique nickname.');input.reportValidity();return;}change(()=>{const id=globalThis.crypto?.randomUUID?.()||`${Date.now()}-${Math.random()}`;state.players.push({id,name,games:0});state.queue.push(id);},`${name} joined the queue.`);input.value='';input.focus();};
+$('add-form').onsubmit=e=>{e.preventDefault();const input=$('nickname'),name=cleanName(input.value);if(!visibleName(name)){input.setCustomValidity('Enter a nickname.');input.reportValidity();return;}const same=state.players.find(p=>p.name.toLocaleLowerCase()===name.toLocaleLowerCase());if(same){input.setCustomValidity((state.left||[]).includes(same.id)?`${same.name} left earlier. Use Return in the player list to bring them back.`:'That nickname is already in the queue. Use a unique nickname.');input.reportValidity();return;}change(()=>{const id=globalThis.crypto?.randomUUID?.()||`${Date.now()}-${Math.random()}`;state.players.push({id,name,games:0});state.queue.push(id);},`${name} joined the queue.`);stat('player_added');input.value='';input.focus();};
 $('nickname').oninput=()=>$('nickname').setCustomValidity('');
 function play(courtId,rotate=true){const c=state.courts.find(c=>c.id===courtId);if(!c||(!c.current.length&&nextPlayers().length<4))return;
+if(c.current.length)stat('game_finished');
 change(()=>{const leaving=c.current.filter(id=>window.pendingLeaves?.has(id));if(c.current.length){c.current.forEach(id=>player(id).games++);state.completed++;}if(leaving.length)state.left=[...(state.left||[]),...leaving];state.queue=nextOrder(c.current.filter(id=>!leaving.includes(id)),rotate);c.current=[];delete c.game;if(rotate&&nextPlayers().length===4){c.current=state.queue.splice(0,4);c.game=newId();if((state.lineup||[]).some(id=>c.current.includes(id)))state.lineup=[];}state.skipped=(state.skipped||[]).filter(id=>!state.queue.includes(id)&&!c.current.includes(id));},rotate?'Court updated. The queue is ready for the next available game.':'Game counted. Court is now available.');}
 $('lineup-form').onsubmit=async e=>{e.preventDefault();const chosen=Array.from($('lineup-fields').querySelectorAll('select'),s=>s.value);if(chosen.length!==4||new Set(chosen).size!==4||chosen.some(id=>!state.queue.includes(id))){$('lineup-error').textContent='Choose four different waiting players.';return;}if(await window.approveCustomLineup(chosen))$('lineup-editor').open=false;};
 // Local-only approval. checkin.js replaces this with the shared-session version; keeping a default here means
@@ -409,10 +412,11 @@ window.addEventListener('storage',e=>{if(e.key!==KEY)return;try{const incoming=e
 render();
 </script>
 <script src="config.js?v=2026-11-10b"></script>
+<script src="analytics.js?v=2026-11-10j"></script>
 <script src="vendor/qrcode.js"></script>
 <script src="checkin-api.js?v=2026-11-10b"></script>
-<script src="checkin.js?v=2026-11-10g"></script>
-<script src="archives.js?v=2026-11-10c"></script>
-<script src="customize.js?v=2026-11-10g"></script>
+<script src="checkin.js?v=2026-11-10i"></script>
+<script src="archives.js?v=2026-11-10i"></script>
+<script src="customize.js?v=2026-11-10i"></script>
 </body>
 </html>

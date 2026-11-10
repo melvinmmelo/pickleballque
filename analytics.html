@@ -1,0 +1,141 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow"><meta name="referrer" content="no-referrer">
+<title>Sideout analytics</title>
+<style>
+@font-face{font-family:Archivo;font-style:normal;font-weight:100 900;font-stretch:62% 125%;font-display:swap;src:url(vendor/fonts/archivo-latin.woff2) format('woff2')}
+:root{--page:#E6ECEF;--ink:#0F2438;--muted:#56697A;--rule:#C6D2D9;--grid:#E3E9EC;--surface:#FFFFFF;--mark:#1d5fa6;--mark-hover:#3f7cc0;--danger:#9A3324;
+  font-family:Archivo,ui-sans-serif,system-ui,sans-serif;color:var(--ink);background:var(--page);font-synthesis:none}
+*{box-sizing:border-box}body{margin:0;font-size:15px;line-height:1.45}
+button,input{font:inherit;color:inherit}button{cursor:pointer;border:0;border-radius:10px;padding:10px 14px;font-weight:650;background:var(--surface)}
+button:focus-visible,input:focus-visible,summary:focus-visible{outline:3px solid var(--mark);outline-offset:2px}
+h1,h2{font-stretch:112%;font-weight:800;letter-spacing:-.01em;margin:0}h1{font-size:28px}h2{font-size:19px}
+p{margin:0}.muted{color:var(--muted)}
+.bar{display:flex;flex-wrap:wrap;align-items:center;gap:10px 18px;max-width:1180px;margin:0 auto;padding:20px}
+.mark{font-stretch:125%;font-weight:850;font-size:24px;letter-spacing:-.02em}.who{color:var(--muted)}
+.range{display:flex;gap:4px;margin-left:auto;background:var(--surface);border-radius:12px;padding:4px}
+.range button{padding:7px 12px;border-radius:8px;font-size:14px}.range button[aria-pressed="true"]{background:var(--ink);color:#fff}
+.quiet{background:none;padding:6px 2px;text-decoration:underline;text-underline-offset:3px;color:var(--muted);font-size:14px}
+main{max-width:1180px;margin:0 auto;padding:0 20px 48px}
+.card{background:var(--surface);border-radius:16px;padding:20px 22px;margin-top:18px;min-width:0}
+.unlock{max-width:520px;margin:40px auto 0}.unlock p{margin:8px 0 14px;color:var(--muted)}
+.entry{display:flex;gap:8px;margin-top:6px}.entry input{flex:1;min-width:0;padding:11px 12px;border:1px solid var(--rule);border-radius:10px}
+.dark{background:var(--ink);color:#fff}#unlock-message{color:var(--danger);margin-top:10px}
+code{font-size:13px;background:var(--page);padding:1px 5px;border-radius:5px}
+.hero{display:flex;flex-wrap:wrap;align-items:baseline;gap:6px 16px;margin-top:6px}
+.hero b{font-size:64px;font-weight:800;line-height:1;letter-spacing:-.02em}.hero .label{font-size:18px;font-weight:700}
+.tiles{display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:12px;margin-top:16px}
+.tile{background:var(--surface);border-radius:14px;padding:14px 16px}.card .tile{background:var(--page)}
+.tile .label{font-size:13px;color:var(--muted);display:block}.tile .value{font-size:26px;font-weight:700;display:block;margin-top:2px}.tile .note{font-size:12px;color:var(--muted);display:block;margin-top:2px}
+.chart{position:relative;margin-top:12px}.chart svg{display:block;width:100%;height:auto;overflow:visible}
+.chart .tick{font-size:11px;fill:var(--muted);font-variant-numeric:tabular-nums}.chart .col{fill:var(--mark)}.chart .hit{fill:transparent}.chart .col.on{fill:var(--mark-hover)}
+.tip{position:fixed;z-index:10;pointer-events:none;background:var(--ink);color:#fff;border-radius:8px;padding:8px 10px;font-size:13px;line-height:1.35;box-shadow:0 4px 14px #0f243833;max-width:220px}
+.tip strong{display:block;font-size:16px}.tip span{color:#c9d6e2}
+details{margin-top:12px}summary{cursor:pointer;color:var(--muted);font-size:14px;font-weight:600}
+table{width:100%;border-collapse:collapse;margin-top:8px;font-size:14px}th,td{text-align:left;padding:7px 4px;border-bottom:1px solid var(--grid)}th{color:var(--muted);font-weight:600;font-size:13px}
+td.n{text-align:right;font-variant-numeric:tabular-nums;font-weight:650}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:18px}.two .card{margin-top:18px}
+.ranked{display:grid;gap:10px;margin-top:12px}.ranked .row{display:grid;grid-template-columns:130px 1fr 44px;gap:10px;align-items:center;font-size:14px}
+.ranked .track{height:12px}.ranked .fill{height:12px;background:var(--mark);border-radius:0 4px 4px 0;min-width:2px}.ranked .n{text-align:right;font-weight:650;font-variant-numeric:tabular-nums}
+.empty{color:var(--muted);margin-top:10px}.foot{margin-top:22px;font-size:13px}
+@media (max-width:760px){.bar{padding:16px}.range{margin-left:0;width:100%;justify-content:space-between}main{padding:0 16px 40px}.two{grid-template-columns:1fr}.hero b{font-size:52px}.ranked .row{grid-template-columns:110px 1fr 40px}}
+</style>
+</head>
+<body>
+<header class="bar"><div class="mark">sideout</div><span class="who">Developer analytics</span>
+  <div class="range" id="range" role="group" aria-label="Date range" hidden><button type="button" data-days="7">7 days</button><button type="button" data-days="30">30 days</button><button type="button" data-days="90">90 days</button><button type="button" data-days="365">1 year</button></div>
+  <button id="forget" class="quiet" type="button" hidden>Lock and forget key</button></header>
+<main>
+<section id="unlock" class="card unlock" hidden><h1>Analytics</h1><p>For the developer only. Paste the key saved at <code>~/.config/sideout/analytics-key</code> on your computer. This browser remembers it until you choose Lock and forget key.</p>
+  <form id="unlock-form"><label for="key">Developer key</label><div class="entry"><input id="key" type="password" autocomplete="off" spellcheck="false" required><button class="dark">Unlock</button></div></form><p id="unlock-message" role="alert"></p></section>
+<section id="report" hidden aria-live="polite">
+  <p id="period" class="muted"></p>
+  <div class="hero"><span class="label">Users</span><b id="users"></b><span id="users-note" class="muted"></span></div>
+  <div class="tiles" id="tiles"></div>
+  <section class="card"><h2>Visits per day</h2><div id="chart-visits" class="chart"></div>
+    <details><summary>Show daily numbers as a table</summary><table id="daily-table"></table></details></section>
+  <section class="card"><h2>Time in use per day</h2><p class="muted">Minutes the app was on screen</p><div id="chart-minutes" class="chart"></div></section>
+  <div class="two"><section class="card"><h2>Customizations by type</h2><div id="customs" class="ranked"></div></section><section class="card"><h2>App actions</h2><table id="actions"></table></section></div>
+  <section class="card"><h2>Right now</h2><div class="tiles" id="now"></div></section>
+  <p class="muted foot">Users are counted by an anonymous random ID per browser, so one person on two devices counts twice and someone who turned stats off isn’t counted. Time in use counts only while the page is on screen. Days are in Philippine time. Numbers start from when analytics was switched on.</p>
+</section>
+<p id="load-message" class="muted" role="status"></p>
+</main>
+<div id="tip" class="tip" hidden></div>
+<script src="config.js?v=2026-11-10b"></script>
+<script src="checkin-api.js?v=2026-11-10b"></script>
+<script>
+'use strict';
+const KEY='sideout-analytics-key',$=id=>document.getElementById(id);
+const el=(tag,cls,text)=>{const e=document.createElement(tag);if(cls)e.className=cls;if(text!==undefined)e.textContent=text;return e;};
+const read=()=>{try{return localStorage.getItem(KEY);}catch{return null;}},keep=v=>{try{v?localStorage.setItem(KEY,v):localStorage.removeItem(KEY);}catch{}};
+const num=n=>Number(n||0).toLocaleString('en-US');
+function duration(s){s=Math.round(Number(s)||0);if(s<60)return s+' s';const m=Math.floor(s/60),r=s%60;if(m<60)return r?`${m} min ${r} s`:`${m} min`;const h=s/3600;return (h<10?h.toFixed(1):num(Math.round(h)))+' h';}
+const manilaDay=d=>new Intl.DateTimeFormat('en-CA',{timeZone:'Asia/Manila'}).format(d);
+const shortDay=iso=>new Date(iso+'T12:00:00Z').toLocaleDateString('en-US',{month:'short',day:'numeric',timeZone:'UTC'});
+const ACTIONS={qr_started:'QR sessions started',session_saved:'Sessions saved',game_finished:'Games finished',player_added:'Players added by organizers',checked_in:'QR check-ins',court_added:'Courts added',court_removed:'Courts removed',brand_changed:'Customizations',banner_added:'Banners added',banner_removed:'Banners removed',guess:'Guesses on who wins',left:'Players who left',lineup_requested:'Lineup requests'};
+const CUSTOMS={preset:'Color preset',custom_color:'Custom color',club_logo:'Club logo',court_logo:'Court logo',remove_logo:'Logo removed',reset:'Reset to defaults',banner_name:'Banner name',banner_link:'Banner link',banner_order:'Banner order',other:'Other'};
+let days=30,data=null;
+
+function lockedOut(message){$('report').hidden=true;$('range').hidden=true;$('forget').hidden=true;$('unlock').hidden=false;$('unlock-message').textContent=message||'';$('load-message').textContent='';$('key').focus();}
+async function load(){const key=read();if(!key)return lockedOut();$('unlock').hidden=true;$('load-message').textContent='Loading…';
+  try{data=await CheckinAPI.call('analytics',{p_key:key,p_days:days});$('load-message').textContent='';draw();}
+  catch(e){if(/Invalid analytics key/.test(e.message)){keep(null);lockedOut('That key didn’t work. Check the key file and try again.');}else $('load-message').textContent='Couldn’t load analytics. '+e.message;}}
+$('unlock-form').onsubmit=e=>{e.preventDefault();keep($('key').value.trim());$('key').value='';load();};
+$('forget').onclick=()=>{keep(null);data=null;lockedOut('Key removed from this browser.');};
+$('range').onclick=e=>{const d=Number(e.target.dataset.days);if(!d||d===days)return;days=d;load();};
+
+function tile(host,label,value,note){const t=el('div','tile');t.append(el('span','label',label),el('span','value',value));if(note)t.append(el('span','note',note));host.append(t);}
+function filledDays(){const map=new Map((data.daily||[]).map(d=>[d.day,d])),out=[];for(let i=days-1;i>=0;i--){const day=manilaDay(new Date(Date.now()-i*864e5));const d=map.get(day)||{};out.push({day,visits:Number(d.visits)||0,users:Number(d.users)||0,minutes:Number(d.minutes)||0});}return out;}
+function draw(){
+  $('report').hidden=false;$('range').hidden=false;$('forget').hidden=false;for(const b of $('range').children)b.setAttribute('aria-pressed',String(Number(b.dataset.days)===days));
+  const a=data.actions||{},byPage=data.visitsByPage||{},series=filledDays();
+  $('period').textContent=`Last ${days} days, ${shortDay(series[0].day)} to ${shortDay(series[series.length-1].day)}`;
+  $('users').textContent=num(data.users);$('users-note').textContent=`${num(data.organizers)} on the organizer page, ${num(data.players)} on the player page, ${num(data.returning)} came back on another day`;
+  const tiles=$('tiles');tiles.replaceChildren();
+  tile(tiles,'Visits',num(data.visits),`${num(byPage.organizer)} organizer, ${num(byPage.player)} player`);
+  tile(tiles,'Average visit',duration(data.avgVisitSeconds),'Median '+duration(data.medianVisitSeconds));
+  tile(tiles,'Time in use',duration(data.activeSeconds),'On screen, all visits');
+  tile(tiles,'QR sessions started',num(a.qr_started));
+  tile(tiles,'Sessions saved',num(a.session_saved));
+  tile(tiles,'Games finished',num(a.game_finished));
+  tile(tiles,'Banners added',num(a.banner_added),a.banner_removed?`${num(a.banner_removed)} removed`:'');
+  tile(tiles,'Customizations',num(a.brand_changed));
+  columns($('chart-visits'),series,p=>p.visits,p=>[`${num(p.visits)} ${p.visits===1?'visit':'visits'}`,`${num(p.users)} ${p.users===1?'user':'users'}, ${duration(p.minutes*60)} in use`]);
+  columns($('chart-minutes'),series,p=>p.minutes,p=>[duration(p.minutes*60),`${num(p.visits)} ${p.visits===1?'visit':'visits'}`]);
+  const table=$('daily-table');table.replaceChildren();const head=el('tr');for(const h of ['Day','Visits','Users','Minutes in use'])head.append(el('th','',h));table.append(head);
+  for(const p of [...series].reverse()){const r=el('tr');r.append(el('td','',shortDay(p.day)),el('td','n',num(p.visits)),el('td','n',num(p.users)),el('td','n',num(p.minutes)));table.append(r);}
+  const customs=Object.entries(data.customizations||{}).sort((x,y)=>y[1]-x[1]),host=$('customs');host.replaceChildren();
+  if(!customs.length)host.append(el('p','empty','No customizations in this period.'));
+  const top=Math.max(1,...customs.map(c=>c[1]));for(const [k,n] of customs){const row=el('div','row'),track=el('div','track'),fill=el('div','fill');fill.style.width=(n/top*100)+'%';track.append(fill);row.append(el('span','',CUSTOMS[k]||k),track,el('span','n',num(n)));host.append(row);}
+  const acts=$('actions');acts.replaceChildren();const ah=el('tr');ah.append(el('th','','Action'),el('th','','Count'));acts.append(ah);
+  for(const [k,label] of Object.entries(ACTIONS)){const r=el('tr');r.append(el('td','',label),el('td','n',num(a[k])));acts.append(r);}
+  const now=$('now'),n=data.now||{};now.replaceChildren();
+  tile(now,'Open QR sessions',num(n.openQrSessions));tile(now,'With custom branding',num(n.sessionsWithBranding));tile(now,'With sponsor banners',num(n.sessionsWithBanners));tile(now,'Banners showing',num(n.bannersShowing));tile(now,'Saved sessions in the cloud',num(n.savedSessionsInCloud),'All time');
+}
+
+// Column chart: one series, one hue, rounded data-ends on a single baseline, hover tooltip per day.
+function niceTop(max){const rough=max/4,pow=10**Math.floor(Math.log10(rough||1)),step=[1,2,5,10].map(m=>m*pow).find(s=>s>=rough)||pow*10;return {step,top:Math.max(step,Math.ceil(max/step)*step)};}
+function columns(host,points,value,tipLines){
+  host.replaceChildren();const ns='http://www.w3.org/2000/svg',W=Math.max(300,host.clientWidth||700),H=210,L=44,R=6,T=10,B=26,svg=document.createElementNS(ns,'svg');
+  svg.setAttribute('viewBox',`0 0 ${W} ${H}`);svg.setAttribute('role','img');
+  const max=Math.max(...points.map(value)),{step,top}=niceTop(Math.max(1,max)),plotH=H-T-B,band=(W-L-R)/points.length,bw=Math.max(1,Math.min(24,band*.7));
+  svg.setAttribute('aria-label',`${host.previousElementSibling?.textContent||'Chart'}: highest ${num(max)} on one day. Daily numbers are in the table.`);
+  const make=(tag,attrs,text)=>{const e=document.createElementNS(ns,tag);for(const [k,v] of Object.entries(attrs))e.setAttribute(k,v);if(text!==undefined)e.textContent=text;svg.append(e);return e;};
+  for(let v=0;v<=top;v+=step){const y=T+plotH-(v/top)*plotH;make('line',{x1:L,x2:W-R,y1:y,y2:y,stroke:'var(--grid)','stroke-width':1});make('text',{x:L-8,y:y+4,'text-anchor':'end',class:'tick'},num(v));}
+  const tip=$('tip');
+  points.forEach((p,i)=>{const v=value(p),x0=L+i*band,x=x0+(band-bw)/2,h=v/top*plotH,y=T+plotH-h;
+    let col=null;if(v>0){const r=Math.min(4,bw/2,h);col=make('path',{class:'col',d:`M${x} ${y+h}V${y+r}Q${x} ${y} ${x+r} ${y}H${x+bw-r}Q${x+bw} ${y} ${x+bw} ${y+r}V${y+h}Z`});}
+    const hit=make('rect',{x:x0,y:T,width:band,height:plotH,class:'hit'});
+    hit.addEventListener('pointermove',e=>{col?.classList.add('on');const [first,second]=tipLines(p);tip.replaceChildren(el('strong','',first),el('span','',shortDay(p.day)+(second?', '+second:'')));tip.hidden=false;const w=tip.offsetWidth;tip.style.left=Math.min(innerWidth-w-8,e.clientX+12)+'px';tip.style.top=(e.clientY-56)+'px';});
+    hit.addEventListener('pointerleave',()=>{col?.classList.remove('on');tip.hidden=true;});});
+  const labelAt=[0,Math.floor((points.length-1)/2),points.length-1];for(const i of new Set(labelAt))make('text',{x:L+i*band+band/2,y:H-6,'text-anchor':i===0?'start':i===points.length-1?'end':'middle',class:'tick'},shortDay(points[i].day));
+  host.append(svg);
+}
+let resizeTimer;addEventListener('resize',()=>{clearTimeout(resizeTimer);resizeTimer=setTimeout(()=>{if(data&&!$('report').hidden)draw();},150);});
+load();
+</script>
+</body>
+</html>

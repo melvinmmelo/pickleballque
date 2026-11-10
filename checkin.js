@@ -20,7 +20,7 @@ try{const id=crypto.randomUUID(),owner=crypto.randomUUID().replaceAll('-','')+cr
 // Ensure browser storage works before creating a remote session.
 localStorage.setItem('sideout-storage-test','1');localStorage.removeItem('sideout-storage-test');
 const result=await CheckinAPI.call('create',{p_session:id,p_owner:owner,p_players:state.players.map(p=>({id:p.id,name:p.name}))});
-state.checkin={id,owner,seen:state.players.map(p=>p.id),expiresAt:result.expiresAt};previous=null;persist();render();show();await publish(state.checkin);await pushBrand(state.checkin);await pushSponsors(state.checkin);
+state.checkin={id,owner,seen:state.players.map(p=>p.id),expiresAt:result.expiresAt};previous=null;persist();render();show();window.SideoutStats?.track('qr_started');await publish(state.checkin);await pushBrand(state.checkin);await pushSponsors(state.checkin);
 }catch(e){message(e.message);}finally{$('share-start').disabled=!CheckinAPI.configured();}});};
 function poll(){if(waiting||!state.checkin||!CheckinAPI.configured()||document.hidden)return;return exclusive(sync);}
 async function sync(){const shared=state.checkin;if(!shared)return false;

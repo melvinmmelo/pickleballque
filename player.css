@@ -57,6 +57,7 @@ button:focus-visible,input:focus-visible,select:focus-visible{outline:3px solid 
 #request-fields label{min-width:0;font-weight:500;font-size:13px;color:var(--muted)}
 #request-form button{margin-top:12px}
 .footnote{font-size:13px;margin-top:18px}
+.stats-toggle{display:block;background:none;color:var(--muted);padding:6px 0;margin-top:14px;font-weight:600;font-size:13px;text-decoration:underline;text-underline-offset:2px}
 .guess{margin-top:12px}
 .guess-title{color:#fff;font-weight:700;font-size:14px;margin:0 0 6px}
 .picks{display:grid;grid-template-columns:1fr 1fr;gap:8px}
