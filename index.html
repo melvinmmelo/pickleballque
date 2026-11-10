@@ -113,6 +113,8 @@ input{width:100%;min-width:0;padding:12px 14px;border:1px solid var(--rule);bord
 .roster-table .where,.roster-table .custom{color:var(--muted);font-size:14px}
 .roster-table .rm{text-align:right}
 .remove{background:none;color:var(--danger);padding:4px;font-weight:600}
+.remove.return{color:var(--court);margin-right:6px}
+.roster-table tr.left td:not(.rm){color:var(--muted)}
 .roster-table td.empty{color:var(--muted);text-align:center;padding:24px 8px;border-bottom:0}
 
 /* Panels added by checkin.js and archives.js */
@@ -220,7 +222,8 @@ if(!s||!Array.isArray(s.players)||!Array.isArray(s.queue)||!Array.isArray(s.cour
 if(!s.players.every(p=>p&&typeof p.id==='string'&&typeof p.name==='string'&&p.name.trim()&&Number.isInteger(p.games)&&p.games>=0))return false;
 if(!s.courts.every(c=>c&&Number.isInteger(c.id)&&c.id>0&&Array.isArray(c.current)&&(c.current.length===0||c.current.length===4))||new Set(s.courts.map(c=>c.id)).size!==s.courts.length)return false;
 if(s.lineup!==undefined&&(!Array.isArray(s.lineup)||(s.lineup.length!==0&&s.lineup.length!==4)||new Set(s.lineup).size!==s.lineup.length||s.lineup.some(id=>!s.queue.includes(id))))return false;
-const ids=s.players.map(p=>p.id),all=[...s.queue,...s.courts.flatMap(c=>c.current)];
+if(s.left!==undefined&&!Array.isArray(s.left))return false;
+const ids=s.players.map(p=>p.id),all=[...s.queue,...s.courts.flatMap(c=>c.current),...(s.left||[])];
 return new Set(ids).size===ids.length&&all.length===ids.length&&new Set(all).size===ids.length&&all.every(id=>ids.includes(id))&&(s.skipped===undefined||(Array.isArray(s.skipped)&&s.skipped.every(id=>ids.includes(id))&&new Set(s.skipped).size===s.skipped.length));
 }
 try{const saved=localStorage.getItem(KEY);if(saved){const parsed=migrate(JSON.parse(saved));if(!valid(parsed))throw Error('Invalid saved queue');state=parsed;}}catch(e){let kept=false;try{const raw=localStorage.getItem(KEY);if(raw){localStorage.setItem(KEY+'-unreadable',raw);kept=true;}}catch{}$('notice').hidden=false;$('notice').textContent='Saved data could not be loaded. This page is starting with an empty queue.'+(kept?' The unreadable copy was kept in this browser as '+KEY+'-unreadable.':'');}
@@ -263,7 +266,8 @@ onEnter:els=>{gsap.fromTo(els,{autoAlpha:0,y:10},{autoAlpha:1,y:0,duration:.4,ea
 function render(){
 const before=rendered&&hasMotion()?Flip.getState('[data-flip-id]'):null,places=before?namePositions():null;
 $('session-count').replaceChildren(node('b','',String(state.completed)),` game${state.completed===1?'':'s'} played`);
-$('player-count').replaceChildren(node('b','',String(state.players.length)),` player${state.players.length===1?'':'s'}`);
+const gone=(state.left||[]).length,here=state.players.length-gone;
+$('player-count').replaceChildren(node('b','',String(here)),` player${here===1?'':'s'}`,...(gone?[' ',node('b','',String(gone)),' left']:[]));
 $('waiting-count').textContent=`${state.queue.length} waiting`;
 const returning=state.courts.length===1?state.courts[0].current:[];
 const ready=nextPlayers(),firstOpen=state.courts.find(c=>!c.current.length);
@@ -300,10 +304,11 @@ if(open)later.append(node('p','helper',state.courts.some(c=>c.current.length)?'P
 
 const roster=$('roster');roster.replaceChildren();
 if(!state.players.length){const tr=node('tr'),td=node('td','empty','Add the first nickname to start the queue.');td.colSpan=5;tr.append(td);roster.append(tr);}
-const queued=nextOrder();[...state.courts.flatMap(c=>c.current),...queued].forEach(id=>{const p=player(id),on=state.courts.find(c=>c.current.includes(id)),tr=node('tr','row');tr.dataset.flipId='r-'+id;
+const queued=nextOrder(),leftIds=state.left||[];[...state.courts.flatMap(c=>c.current),...queued,...leftIds].forEach(id=>{const p=player(id),on=state.courts.find(c=>c.current.includes(id)),gone=leftIds.includes(id),tr=node('tr',gone?'row left':'row');tr.dataset.flipId='r-'+id;
 const remove=node('button','remove','Remove');remove.type='button';remove.setAttribute('aria-label',`Remove ${p.name}`);remove.title=on?'Use Finish game only before removing this player':'Remove player';remove.disabled=!!on;
-remove.onclick=()=>{if(confirm(`Remove ${p.name} and their game count from this session?`))change(()=>{if((state.lineup||[]).includes(id))state.lineup=[];state.queue=state.queue.filter(x=>x!==id);state.players=state.players.filter(x=>x.id!==id);state.skipped=(state.skipped||[]).filter(x=>x!==id);},`${p.name} removed.`);};
-const rm=node('td','rm');rm.append(remove);tr.append(node('td','',p.name),node('td','games',String(p.games)),node('td','where',on?`Court ${on.id}`:`Queue ${queued.indexOf(id)+1}`),node('td','custom',`${p.customUsed||0}/2`),rm);roster.append(tr);});
+remove.onclick=()=>{if(confirm(`Remove ${p.name} and their game count from this session?`))change(()=>{if((state.lineup||[]).includes(id))state.lineup=[];state.queue=state.queue.filter(x=>x!==id);state.left=(state.left||[]).filter(x=>x!==id);state.players=state.players.filter(x=>x.id!==id);state.skipped=(state.skipped||[]).filter(x=>x!==id);},`${p.name} removed.`);};
+const rm=node('td','rm');if(gone){const back=node('button','remove return','Return');back.type='button';back.setAttribute('aria-label',`Return ${p.name} to the queue`);back.title='Put this player back at the end of the queue';back.onclick=()=>change(()=>{state.left=state.left.filter(x=>x!==id);state.queue.push(id);},`${p.name} is back in the queue.`);rm.append(back);}rm.append(remove);
+tr.append(node('td','',p.name),node('td','games',String(p.games)),node('td','where',on?`Court ${on.id}`:gone?'Left':`Queue ${queued.indexOf(id)+1}`),node('td','custom',`${p.customUsed||0}/2`),rm);roster.append(tr);});
 
 const fields=$('lineup-fields'),draft=$('lineup-editor').open?Array.from(fields.querySelectorAll('select'),s=>s.value):[];fields.replaceChildren();
 for(let i=0;i<4;i++){const label=node('label','',`${i<2?'Team A':'Team B'}, player ${i%2+1}`),select=node('select');select.name=`slot${i}`;select.required=true;select.setAttribute('aria-label',`Lineup player ${i+1}`);const placeholder=node('option','','Choose player');placeholder.value='';select.append(placeholder);nextOrder([],false).forEach(id=>{const option=node('option','',player(id).name);option.value=id;option.disabled=(player(id).customUsed||0)>=2;if(option.disabled)option.textContent+=' (limit reached)';select.append(option);});select.value=draft[i]||(state.lineup||[])[i]||'';label.append(select);fields.append(label);}
@@ -313,10 +318,10 @@ $('lineup-error').textContent='';
 $('undo').disabled=!previous;
 animate(before,places);rendered=true;
 }
-$('add-form').onsubmit=e=>{e.preventDefault();const input=$('nickname'),name=cleanName(input.value);if(!visibleName(name)){input.setCustomValidity('Enter a nickname.');input.reportValidity();return;}if(state.players.some(p=>p.name.toLocaleLowerCase()===name.toLocaleLowerCase())){input.setCustomValidity('That nickname is already in the queue. Use a unique nickname.');input.reportValidity();return;}change(()=>{const id=globalThis.crypto?.randomUUID?.()||`${Date.now()}-${Math.random()}`;state.players.push({id,name,games:0});state.queue.push(id);},`${name} joined the queue.`);input.value='';input.focus();};
+$('add-form').onsubmit=e=>{e.preventDefault();const input=$('nickname'),name=cleanName(input.value);if(!visibleName(name)){input.setCustomValidity('Enter a nickname.');input.reportValidity();return;}const same=state.players.find(p=>p.name.toLocaleLowerCase()===name.toLocaleLowerCase());if(same){input.setCustomValidity((state.left||[]).includes(same.id)?`${same.name} left earlier. Use Return in the player list to bring them back.`:'That nickname is already in the queue. Use a unique nickname.');input.reportValidity();return;}change(()=>{const id=globalThis.crypto?.randomUUID?.()||`${Date.now()}-${Math.random()}`;state.players.push({id,name,games:0});state.queue.push(id);},`${name} joined the queue.`);input.value='';input.focus();};
 $('nickname').oninput=()=>$('nickname').setCustomValidity('');
 function play(courtId,rotate=true){const c=state.courts.find(c=>c.id===courtId);if(!c||(!c.current.length&&nextPlayers().length<4))return;
-change(()=>{if(c.current.length){c.current.forEach(id=>player(id).games++);state.completed++;}state.queue=nextOrder(c.current,rotate);c.current=[];if(rotate&&nextPlayers().length===4){c.current=state.queue.splice(0,4);if((state.lineup||[]).some(id=>c.current.includes(id)))state.lineup=[];}state.skipped=(state.skipped||[]).filter(id=>!state.queue.includes(id)&&!c.current.includes(id));},rotate?'Court updated. The queue is ready for the next available game.':'Game counted. Court is now available.');}
+change(()=>{const leaving=c.current.filter(id=>window.pendingLeaves?.has(id));if(c.current.length){c.current.forEach(id=>player(id).games++);state.completed++;}if(leaving.length)state.left=[...(state.left||[]),...leaving];state.queue=nextOrder(c.current.filter(id=>!leaving.includes(id)),rotate);c.current=[];if(rotate&&nextPlayers().length===4){c.current=state.queue.splice(0,4);if((state.lineup||[]).some(id=>c.current.includes(id)))state.lineup=[];}state.skipped=(state.skipped||[]).filter(id=>!state.queue.includes(id)&&!c.current.includes(id));},rotate?'Court updated. The queue is ready for the next available game.':'Game counted. Court is now available.');}
 $('lineup-form').onsubmit=async e=>{e.preventDefault();const chosen=Array.from($('lineup-fields').querySelectorAll('select'),s=>s.value);if(chosen.length!==4||new Set(chosen).size!==4||chosen.some(id=>!state.queue.includes(id))){$('lineup-error').textContent='Choose four different waiting players.';return;}if(await window.approveCustomLineup(chosen))$('lineup-editor').open=false;};
 // Local-only approval. checkin.js replaces this with the shared-session version; keeping a default here means
 // the core queue still works if that optional script fails to load or a stale cached copy is served.
@@ -332,8 +337,8 @@ render();
 <script src="config.js?v=2026-11-10b"></script>
 <script src="vendor/qrcode.js"></script>
 <script src="checkin-api.js?v=2026-11-10b"></script>
-<script src="checkin.js?v=2026-11-10b"></script>
-<script src="archives.js?v=2026-11-10b"></script>
+<script src="checkin.js?v=2026-11-10c"></script>
+<script src="archives.js?v=2026-11-10c"></script>
 <script src="customize.js?v=2026-11-10b"></script>
 </body>
 </html>

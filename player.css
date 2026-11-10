@@ -57,6 +57,9 @@ button:focus-visible,input:focus-visible,select:focus-visible{outline:3px solid 
 #request-fields label{min-width:0;font-weight:500;font-size:13px;color:var(--muted)}
 #request-form button{margin-top:12px}
 .footnote{font-size:13px;margin-top:18px}
+.leave{margin-top:16px;padding-top:14px;border-top:1px solid var(--rule)}
+.leave .secondary{margin-top:0}
+#leave-message{margin-top:8px}
 
 @media (max-width:600px){
   header{padding:16px}

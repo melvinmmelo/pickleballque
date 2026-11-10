@@ -2,7 +2,7 @@
   "name": "sideout-queue",
   "private": true,
   "scripts": {
-    "test": "node tests/checkin-database.cjs && node tests/checkin-browser.cjs && node tests/queue-browser.cjs && node tests/archives.cjs && node tests/player-page.cjs && node tests/lineup-limits.cjs && node tests/asset-cache.cjs && node tests/hardening.cjs && node tests/branding.cjs"
+    "test": "node tests/checkin-database.cjs && node tests/checkin-browser.cjs && node tests/queue-browser.cjs && node tests/archives.cjs && node tests/player-page.cjs && node tests/lineup-limits.cjs && node tests/asset-cache.cjs && node tests/hardening.cjs && node tests/branding.cjs && node tests/player-leave.cjs"
   },
   "devDependencies": {
     "@electric-sql/pglite": "0.5.15",

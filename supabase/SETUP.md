@@ -36,3 +36,7 @@ The player-page migration also maintains per-player custom-lineup counts and an 
 ## Club branding
 
 `branding.sql` was added on 2026-11-10. Run it after `player-page.sql`. It stores each QR session's colors and logos (`sideout_set_brand`, organizer key required), lets players fetch them (`sideout_brand`), and adds `brandVersion` to `sideout_player_view` so phones download branding only when it changes. The server accepts only four `#rrggbb` colors and two base64 PNG, WebP, or JPEG logos of about 90 KB or less; other keys are dropped and SVG or remote URLs are rejected. The file is idempotent. Until it is applied, organizer pages keep working and players see the default colors.
+
+## Leaving from the player page
+
+`player-leave.sql` was added on 2026-11-10. Run it after `player-page.sql`. It adds a per-check-in `leaves` counter and `sideout_leave`, which requires the player's private device key, so only the phone that checked in can leave as that player. `sideout_poll` now returns the counter, and `sideout_publish` keeps the organizer's `left` list so phones can show it. A counter rather than a flag lets a player leave again after the organizer returns them. The file is idempotent. Until it is applied, the player page explains that leaving isn't available and the organizer can still remove players.
