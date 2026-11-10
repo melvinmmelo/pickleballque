@@ -278,6 +278,14 @@ if(window.SideoutSponsors){const list=brand.sponsors||[],k=SideoutSponsors.key(l
 function setBrand(next,save=true){brand=SideoutBrand.clean(next);if(save){try{SideoutBrand.save(BRAND_KEY,brand);}catch{$('notice').hidden=false;$('notice').textContent='Branding could not be saved: browser storage is full. It will reset when this page reloads.';}}showBrand();render();}
 showBrand();
 
+// Courts added or removed (including Undo): new courts are built on screen and the others slide into place.
+let lastCourtIds='';
+const cardRects=()=>new Map(Array.from(document.querySelectorAll('#courts .court, #add-court'),el=>[el.dataset.court||'add',el.getBoundingClientRect()]));
+function reflowCourts(was,fresh){for(const el of document.querySelectorAll('#courts .court, #add-court')){const old=was.get(el.dataset.court||'add');if(!old)continue;const now=el.getBoundingClientRect(),dx=old.left-now.left,dy=old.top-now.top;if(Math.abs(dx)+Math.abs(dy)>1)gsap.from(el,{x:dx,y:dy,duration:.5,ease:'power3.inOut',clearProps:'transform'});}
+if(fresh.length)buildCourts(fresh,false);}
+// Remove court: the court is packed up (net down, paint wiped, card fades), then removed and the rest slide over.
+function packUpCourt(card,done){if(!hasMotion()||!card)return done();const surface=card.querySelector('.surface'),label=card.querySelector('.state');if(label)label.textContent='Packing up the court…';
+const tl=gsap.timeline({onComplete:()=>{intro=null;deferred=false;done();}});tl.to(surface,{'--net':0,duration:.25,ease:'power2.in'}).to(card.querySelectorAll('.preview'),{opacity:0,y:-8,duration:.2,stagger:.03},0).to(surface,{clipPath:'inset(0% 0% 0% 100%)',duration:.35,ease:'power1.inOut'},.2).to(card,{opacity:0,scale:.92,duration:.3,ease:'power2.in'},.45);intro=tl;}
 // Motion: GSAP Flip moves each name from where it was to where it is now (deck to court, court to queue, skips, undo).
 // Skipped entirely if GSAP did not load or the visitor prefers reduced motion.
 const hasMotion=()=>!!(window.gsap&&window.Flip)&&!matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -291,8 +299,8 @@ function softRender(){if(intro){deferred=true;return;}render();}
 // Line strips laid exactly over the court's own lines (2px, 44 x 20 ft geometry); each grows from where a painter would start.
 function courtLines(){const box=node('div','court-lines');box.setAttribute('aria-hidden','true');
 for(const cls of ['edge top','edge right','edge bottom','edge left','inner kl','inner kr','inner cl','inner cr'])box.append(node('span','ln '+cls));return box;}
-function buildCourts(){
-const tl=gsap.timeline({defaults:{ease:'power2.out'},onComplete:finish}),cards=[...document.querySelectorAll('#courts .court')];
+function buildCourts(cards=[...document.querySelectorAll('#courts .court')],page=true){
+const tl=gsap.timeline({defaults:{ease:'power2.out'},onComplete:finish});
 function finish(){for(const card of cards){card.querySelector('.surface')?.classList.remove('building');const state=card.querySelector('.state');if(state?.dataset.real){state.textContent=state.dataset.real;delete state.dataset.real;}}
 gsap.to('.court-lines',{opacity:0,duration:.25,onComplete:()=>document.querySelectorAll('.court-lines').forEach(el=>el.remove())});intro=null;if(deferred){deferred=false;render();}}
 cards.forEach((card,i)=>{const at=i*.3,surface=card.querySelector('.surface'),state=card.querySelector('.state'),lines=courtLines(),say=text=>()=>{if(state)state.textContent=text;};
@@ -313,7 +321,7 @@ tl.fromTo(card,{opacity:0,scale:.97},{opacity:1,scale:1,duration:.35,clearProps:
 .call(()=>{if(state&&state.dataset.real){state.textContent=state.dataset.real;delete state.dataset.real;}},null,at+1.3)
 .from(card.querySelectorAll('.court-logo,.guesses,.actions,.court-foot'),{opacity:0,duration:.4,clearProps:'opacity'},at+1.25);});
 const end=Math.max(0,cards.length-1)*.3+1.3;
-tl.from('#add-court',{opacity:0,duration:.3,clearProps:'opacity'},end).from('#next li, #later li',{opacity:0,y:8,duration:.3,stagger:.04,clearProps:'all'},end).from('#roster tr',{opacity:0,duration:.3,stagger:{amount:.4},clearProps:'opacity'},end);
+if(page)tl.from('#add-court',{opacity:0,duration:.3,clearProps:'opacity'},end).from('#next li, #later li',{opacity:0,y:8,duration:.3,stagger:.04,clearProps:'all'},end).from('#roster tr',{opacity:0,duration:.3,stagger:{amount:.4},clearProps:'opacity'},end);
 intro=tl;}
 // Name positions by flip id, so only names that actually change place get the in-flight token style.
 const namePositions=()=>new Map(Array.from(document.querySelectorAll('span[data-flip-id]'),el=>{const r=el.getBoundingClientRect();return [el.dataset.flipId,r.left+r.top*1e4];}));
@@ -328,7 +336,8 @@ onEnter:els=>{gsap.fromTo(els,{autoAlpha:0,y:10},{autoAlpha:1,y:0,duration:.4,ea
 
 function render(){
 if(intro){const running=intro;intro=null;deferred=false;running.progress(1).kill();}
-const before=rendered&&hasMotion()?Flip.getState('[data-flip-id]'):null,places=before?namePositions():null;
+const courtIds=state.courts.map(c=>c.id).join(','),courtsChanged=rendered&&lastCourtIds!==courtIds&&hasMotion(),hadCourts=new Set(lastCourtIds.split(',')),rects=courtsChanged?cardRects():null;
+const before=rendered&&hasMotion()&&!courtsChanged?Flip.getState('[data-flip-id]'):null,places=before?namePositions():null;
 $('session-count').replaceChildren(node('b','',String(state.completed)),` game${state.completed===1?'':'s'} played`);
 const gone=(state.left||[]).length,here=state.players.length-gone;
 $('player-count').replaceChildren(node('b','',String(here)),` player${here===1?'':'s'}`,...(gone?[' ',node('b','',String(gone)),' left']:[]));
@@ -342,7 +351,7 @@ const card=node('article','court');card.dataset.court=c.id;
 const head=node('header','court-head');
 head.append(node('span','num',String(c.id)),node('span','state',playing?'Game in progress':preview?'Open, next four shown':c!==firstOpen?'Open':state.queue.length<4?`Open, needs ${plural(4-state.queue.length,'more player')}`:'Open, waiting for players ahead of the custom group'));
 if(brand?.courtLogo){const logo=node('img','court-logo');logo.src=brand.courtLogo;logo.alt='';head.append(logo);}
-const foot=node('div','court-foot');if(state.courts.length>1){const remove=node('button','quiet','Remove court');remove.type='button';remove.disabled=playing;remove.title=playing?'Use Finish game only before removing this court':'Remove this empty court';remove.onclick=()=>change(()=>{state.courts=state.courts.filter(x=>x.id!==c.id);},'Court removed.');foot.append(remove);}
+const foot=node('div','court-foot');if(state.courts.length>1){const remove=node('button','quiet','Remove court');remove.type='button';remove.disabled=playing;remove.title=playing?'Use Finish game only before removing this court':'Remove this empty court';remove.onclick=()=>{remove.disabled=true;packUpCourt(remove.closest('.court'),()=>change(()=>{state.courts=state.courts.filter(x=>x.id!==c.id);},'Court removed.'));};foot.append(remove);}
 const surface=node('div','surface');surface.setAttribute('role','img');
 surface.setAttribute('aria-label',playing?`Court ${c.id}: ${player(names[0]).name} and ${player(names[1]).name} versus ${player(names[2]).name} and ${player(names[3]).name}`:preview?`Court ${c.id} is open. Next up: ${names.map(id=>player(id).name).join(', ')}`:`Court ${c.id} is open`);
 const box=(i,pos,side)=>{const el=node('div',`box ${pos} ${side}`);const id=names[i];if(id){const label=node('span',playing?'player-chip':'preview',player(id).name);if(playing)label.dataset.flipId='p-'+id;el.append(label);}return el;};
@@ -380,7 +389,8 @@ $('save-lineup').disabled=state.queue.length<4;$('clear-lineup').disabled=!(stat
 $('lineup-status').textContent=(state.lineup||[]).length?'A custom group is queued last. Players ahead of it go first, and the four stay together.':state.queue.length<4?'A custom lineup needs four waiting players.':'Skip moves a player to the back for the next game without changing their game count. Skipping cancels a custom group.';
 $('lineup-error').textContent='';
 $('undo').disabled=!previous;
-animate(before,places);rendered=true;
+lastCourtIds=courtIds;
+if(courtsChanged)reflowCourts(rects,Array.from(document.querySelectorAll('#courts .court')).filter(el=>!hadCourts.has(el.dataset.court)));else animate(before,places);rendered=true;
 }
 $('add-form').onsubmit=e=>{e.preventDefault();const input=$('nickname'),name=cleanName(input.value);if(!visibleName(name)){input.setCustomValidity('Enter a nickname.');input.reportValidity();return;}const same=state.players.find(p=>p.name.toLocaleLowerCase()===name.toLocaleLowerCase());if(same){input.setCustomValidity((state.left||[]).includes(same.id)?`${same.name} left earlier. Use Return in the player list to bring them back.`:'That nickname is already in the queue. Use a unique nickname.');input.reportValidity();return;}change(()=>{const id=globalThis.crypto?.randomUUID?.()||`${Date.now()}-${Math.random()}`;state.players.push({id,name,games:0});state.queue.push(id);},`${name} joined the queue.`);input.value='';input.focus();};
 $('nickname').oninput=()=>$('nickname').setCustomValidity('');

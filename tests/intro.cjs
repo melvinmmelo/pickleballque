@@ -23,9 +23,20 @@ await p.reload();await p.getByRole('button',{name:'Finish game only',exact:true}
 assert.equal(await p.evaluate(()=>intro===null&&state.courts[0].current.length===0),true);
 assert.equal(await p.locator('.court-lines,.building').count(),0);
 
-// 4. Reduced motion: no intro at all.
+// 4. Adding a court builds it on screen; removing one packs it up, then the rest slide over.
+await p.reload();await p.waitForFunction(()=>intro===null,null,{timeout:5000});await p.locator('#add-court').click();
+const built=new Set();for(let i=0;i<60;i++){const s=await p.evaluate(()=>document.querySelector('[data-court="3"] .state')?.textContent);if(s)built.add(s);if(await p.evaluate(()=>intro===null))break;await p.waitForTimeout(40);}
+for(const stage of ['Painting the court…','Drawing the lines…','Raising the net…'])assert(built.has(stage),'new court missing stage '+stage);
+await p.waitForFunction(()=>!document.querySelector('.court-lines,.building'),null,{timeout:3000});assert.equal(await p.locator('[data-court="3"] .state').textContent(),'Open');
+await p.locator('[data-court="2"] .court-foot button').click();await p.waitForTimeout(150);
+assert.equal(await p.locator('[data-court="2"] .state').textContent(),'Packing up the court…');assert.equal(await p.evaluate(()=>state.courts.length),3,'Removed only after packing up');
+await p.waitForFunction(()=>!document.querySelector('[data-court="2"]'),null,{timeout:4000});assert.equal(await p.evaluate(()=>getComputedStyle(document.querySelector('[data-court="3"]')).transform!=='none'),true,'Court 3 slides into place');
+await p.waitForFunction(()=>getComputedStyle(document.querySelector('[data-court="3"]')).transform==='none',null,{timeout:3000});assert.deepEqual(await p.evaluate(()=>state.courts.map(c=>c.id)),[1,3]);
+// 5. Reduced motion: no intro, and courts are added and removed at once.
 const r=await open({reducedMotion:'reduce'});assert.equal(await r.evaluate(()=>intro),null);assert.equal(await r.locator('.court-lines').count(),0);
+await r.locator('#add-court').click();assert.equal(await r.locator('[data-court="3"] .state').textContent(),'Open');assert.equal(await r.locator('.court-lines').count(),0);
+await r.locator('[data-court="3"] .court-foot button').click();assert.equal(await r.evaluate(()=>state.courts.length),2,'Removed immediately without motion');
 
 assert.deepEqual(errors,[]);await b.close();
-console.log('PASS court construction intro: stages play, cleans up, background updates wait, taps finish it, reduced motion skips it');
+console.log('PASS court construction intro: stages play, cleans up, background updates wait, taps finish it; added courts are built, removed courts pack up and the rest slide; reduced motion skips it all');
 })().catch(e=>{console.error(e);process.exit(1);});
