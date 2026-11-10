@@ -18,6 +18,12 @@ Use **Remove** beside a waiting player to remove them from the list and queue af
 
 Data saves in localStorage in the current browser. Existing single-court sessions migrate to Court 01 with game counts and queue order preserved. Data does not sync across devices, browsers, or between the local file and hosted site. Clearing browser storage may erase the session. A warning appears when saving is unavailable.
 
+## Feedback, bug reports, and ratings
+
+Both pages have a **Feedback** button. Choose **Feedback** to give a 1–5 star rating and/or a message, or **Report a bug** to describe what went wrong (at least 10 characters). An email or phone for a reply is optional. To help fix problems, each submission includes the page, app version, browser, and screen size, plus on the organizer page the number of courts, players, and waiting players and whether QR check-in was on. Player names are never sent. A hidden field catches simple spam bots, and the server limits how many reports arrive per hour.
+
+Submissions appear on the developer dashboard (`analytics.html`) with the average rating, a star breakdown, filters for open items, bugs, and feedback, and **Mark done** / **Reopen**. For a separate deployment, run `supabase/feedback.sql` after `analytics.sql`.
+
 ## Anonymous usage stats and the developer dashboard
 
 The organizer and player pages send anonymous usage stats to Supabase: page visits, how long the page was on screen, and app actions such as games finished, QR sessions started, players added, check-ins, guesses, customizations by type, and sponsor banners added or removed. A random ID saved in each browser counts unique users. No names, nicknames, session contents, or IP addresses are sent. Anyone can turn stats off with **Turn off anonymous usage stats** at the bottom of either page, which also deletes the random ID from that browser. Browsers that send Do Not Track or Global Privacy Control are never counted, search-engine crawlers and automated browsers are skipped, and nothing is sent from local files or localhost previews. Events older than 400 days are deleted.

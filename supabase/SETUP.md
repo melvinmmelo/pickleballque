@@ -59,3 +59,7 @@ on conflict (key) do update set value=excluded.value;
 ```
 
 Days in the dashboard are counted in Philippine time. Until the migration is applied, the app works normally and simply records nothing.
+
+## Feedback and bug reports
+
+`feedback.sql` was added on 2026-11-10. Run it after `analytics.sql`; it reuses the developer key hash stored there. It adds a private `feedback` table, `sideout_feedback` (anyone can send: kind feedback or bug, optional 1–5 rating, message up to 2,000 characters, optional contact up to 120 characters, and a context object limited to version, browser, screen, court/player/waiting counts, and QR on/off; at most 300 submissions per hour overall), and two developer-key functions: `sideout_feedback_list` and `sideout_feedback_status` (open or done). The file is idempotent. Until it is applied, the Feedback form explains that feedback isn't available yet.

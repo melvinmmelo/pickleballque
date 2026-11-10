@@ -10,6 +10,7 @@ header .brand-row{display:flex;align-items:center;gap:10px}
 .court-logo{height:24px;max-width:96px;object-fit:contain;margin-left:auto}
 header b{font-stretch:125%;font-weight:850;font-size:26px;letter-spacing:-.02em}
 header span{color:var(--muted)}
+.fb-open{background:var(--surface);color:var(--ink);border:1px solid var(--rule);padding:8px 14px;font-size:14px}
 main{max-width:980px;margin:0 auto;padding:0 20px 40px}
 h1{font-stretch:112%;font-weight:800;font-size:30px;letter-spacing:-.02em;margin:8px 0 4px}
 h2{font-stretch:112%;font-weight:800;font-size:20px;letter-spacing:-.01em;margin:0 0 10px}

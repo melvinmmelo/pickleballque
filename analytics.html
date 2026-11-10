@@ -40,6 +40,19 @@ td.n{text-align:right;font-variant-numeric:tabular-nums;font-weight:650}
 .ranked{display:grid;gap:10px;margin-top:12px}.ranked .row{display:grid;grid-template-columns:130px 1fr 44px;gap:10px;align-items:center;font-size:14px}
 .ranked .track{height:12px}.ranked .fill{height:12px;background:var(--mark);border-radius:0 4px 4px 0;min-width:2px}.ranked .n{text-align:right;font-weight:650;font-variant-numeric:tabular-nums}
 .empty{color:var(--muted);margin-top:10px}.foot{margin-top:22px;font-size:13px}
+/* Feedback and bug reports */
+.fb-grid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.6fr);gap:22px;margin-top:14px;align-items:start}
+.fb-avg{font-size:44px;font-weight:800;line-height:1}.fb-avg small{font-size:18px;color:var(--muted);font-weight:600}
+.filters{display:flex;flex-wrap:wrap;gap:4px;background:var(--page);border-radius:12px;padding:4px;width:max-content;max-width:100%}
+.filters button{padding:7px 12px;border-radius:8px;font-size:14px;background:none}.filters button[aria-pressed="true"]{background:var(--surface);box-shadow:0 1px 3px #0f243826}
+.fb-items{list-style:none;margin:12px 0 0;padding:0;display:grid;gap:10px}
+.fb-item{border:1px solid var(--grid);border-radius:12px;padding:12px 14px}.fb-item.done{opacity:.6}
+.fb-top{display:flex;flex-wrap:wrap;align-items:center;gap:6px 12px;font-size:13px;color:var(--muted)}
+.fb-kind{font-weight:700;color:var(--ink);padding:2px 8px;border-radius:999px;background:var(--page)}.fb-kind.bug{background:#f7e4e0;color:var(--danger)}
+.fb-top .quiet{margin-left:auto;font-size:13px}
+.fb-msg{margin-top:8px;white-space:pre-wrap;overflow-wrap:anywhere}.fb-meta{margin-top:8px;font-size:12px;color:var(--muted);overflow-wrap:anywhere}
+.fb-meta a{color:var(--ink)}
+@media (max-width:760px){.fb-grid{grid-template-columns:1fr}}
 @media (max-width:760px){.bar{padding:16px}.range{margin-left:0;width:100%;justify-content:space-between}main{padding:0 16px 40px}.two{grid-template-columns:1fr}.hero b{font-size:52px}.ranked .row{grid-template-columns:110px 1fr 40px}}
 </style>
 </head>
@@ -54,6 +67,9 @@ td.n{text-align:right;font-variant-numeric:tabular-nums;font-weight:650}
   <p id="period" class="muted"></p>
   <div class="hero"><span class="label">Users</span><b id="users"></b><span id="users-note" class="muted"></span></div>
   <div class="tiles" id="tiles"></div>
+  <section class="card" id="feedback-card"><h2>Feedback and bug reports</h2>
+    <div class="fb-grid"><div><div id="fb-summary"></div><div id="fb-dist" class="ranked"></div></div>
+    <div><div class="filters" id="fb-filters" role="group" aria-label="Show"><button type="button" data-filter="all">All</button><button type="button" data-filter="open">Open</button><button type="button" data-filter="bug">Bugs</button><button type="button" data-filter="feedback">Feedback</button></div><ul id="fb-items" class="fb-items"></ul></div></div></section>
   <section class="card"><h2>Visits per day</h2><div id="chart-visits" class="chart"></div>
     <details><summary>Show daily numbers as a table</summary><table id="daily-table"></table></details></section>
   <section class="card"><h2>Time in use per day</h2><p class="muted">Minutes the app was on screen</p><div id="chart-minutes" class="chart"></div></section>
@@ -81,7 +97,7 @@ let days=30,data=null;
 
 function lockedOut(message){$('report').hidden=true;$('range').hidden=true;$('forget').hidden=true;$('unlock').hidden=false;$('unlock-message').textContent=message||'';$('load-message').textContent='';$('key').focus();}
 async function load(){const key=read();if(!key)return lockedOut();$('unlock').hidden=true;$('load-message').textContent='Loading…';
-  try{data=await CheckinAPI.call('analytics',{p_key:key,p_days:days});$('load-message').textContent='';draw();}
+  try{data=await CheckinAPI.call('analytics',{p_key:key,p_days:days});$('load-message').textContent='';draw();loadFeedback();}
   catch(e){if(/Invalid analytics key/.test(e.message)){keep(null);lockedOut('That key didn’t work. Check the key file and try again.');}else $('load-message').textContent='Couldn’t load analytics. '+e.message;}}
 $('unlock-form').onsubmit=e=>{e.preventDefault();keep($('key').value.trim());$('key').value='';load();};
 $('forget').onclick=()=>{keep(null);data=null;lockedOut('Key removed from this browser.');};
@@ -134,6 +150,31 @@ function columns(host,points,value,tipLines){
   const labelAt=[0,Math.floor((points.length-1)/2),points.length-1];for(const i of new Set(labelAt))make('text',{x:L+i*band+band/2,y:H-6,'text-anchor':i===0?'start':i===points.length-1?'end':'middle',class:'tick'},shortDay(points[i].day));
   host.append(svg);
 }
+// Feedback and bug reports: rating summary, star breakdown (5 down to 1), and the latest items with Mark done.
+let feedback=null,fbFilter='all';
+async function loadFeedback(){try{feedback=await CheckinAPI.call('feedback_list',{p_key:read(),p_days:days});}catch(e){feedback={error:/could not find|does not exist|schema cache/i.test(e.message)?'Feedback isn’t set up in the database yet.':'Couldn’t load feedback. '+e.message};}drawFeedback();}
+function browserName(ua=''){const b=/Edg\//.test(ua)?'Edge':/OPR\/|Opera/.test(ua)?'Opera':/Chrome\//.test(ua)?'Chrome':/Firefox\//.test(ua)?'Firefox':/Safari\//.test(ua)?'Safari':'Browser',os=/iPhone|iPad/.test(ua)?'iOS':/Android/.test(ua)?'Android':/Mac OS X/.test(ua)?'Mac':/Windows/.test(ua)?'Windows':/Linux/.test(ua)?'Linux':'';return os?`${b} on ${os}`:b;}
+function drawFeedback(){
+  const summary=$('fb-summary'),dist=$('fb-dist'),list=$('fb-items');summary.replaceChildren();dist.replaceChildren();list.replaceChildren();
+  if(!feedback)return;if(feedback.error){summary.append(el('p','empty',feedback.error));$('fb-filters').hidden=true;return;}$('fb-filters').hidden=false;
+  const avg=el('div','fb-avg',feedback.avgRating==null?'No ratings':String(feedback.avgRating));if(feedback.avgRating!=null)avg.append(el('small','',' / 5'));
+  summary.append(el('span','label muted','Average rating'),avg,el('p','muted',`${num(feedback.ratingCount)} ${feedback.ratingCount===1?'rating':'ratings'}, ${num(feedback.bugs)} bug ${feedback.bugs===1?'report':'reports'}, ${num(feedback.open)} open`));
+  const counts=feedback.ratings||{},top=Math.max(1,...Object.values(counts).map(Number));
+  for(let n=5;n>=1;n--){const c=Number(counts[n])||0,row=el('div','row'),track=el('div','track'),fill=el('div','fill');fill.style.width=c?(c/top*100)+'%':'0';if(!c)fill.style.minWidth='0';track.append(fill);row.append(el('span','',`${n} ${n===1?'star':'stars'}`),track,el('span','n',num(c)));dist.append(row);}
+  for(const b of $('fb-filters').children)b.setAttribute('aria-pressed',String(b.dataset.filter===fbFilter));
+  const items=(feedback.items||[]).filter(i=>fbFilter==='all'||(fbFilter==='open'?i.status==='open':i.kind===fbFilter));
+  if(!items.length)list.append(el('li','empty',fbFilter==='all'?'Nothing sent in this period.':'Nothing matches this filter.'));
+  for(const i of items){const li=el('li','fb-item'+(i.status==='done'?' done':'')),topRow=el('div','fb-top'),ctx=i.context||{};
+    topRow.append(el('span','fb-kind'+(i.kind==='bug'?' bug':''),i.kind==='bug'?'Bug':'Feedback'));
+    if(i.rating){const s=el('span','stars','★'.repeat(i.rating)+'☆'.repeat(5-i.rating));s.setAttribute('aria-label',`${i.rating} out of 5 stars`);s.setAttribute('role','img');topRow.append(s);}
+    topRow.append(el('span','',new Date(i.createdAt).toLocaleString('en-PH',{timeZone:'Asia/Manila',dateStyle:'medium',timeStyle:'short'})),el('span','',i.page==='player'?'Player page':'Organizer page'));
+    const toggle=el('button','quiet',i.status==='done'?'Reopen':'Mark done');toggle.type='button';
+    toggle.onclick=async()=>{toggle.disabled=true;const next=i.status==='done'?'open':'done';try{await CheckinAPI.call('feedback_status',{p_key:read(),p_id:i.id,p_status:next});feedback.open+=next==='open'?1:-1;i.status=next;drawFeedback();}catch(e){toggle.disabled=false;toggle.textContent='Try again';}};
+    topRow.append(toggle);li.append(topRow);if(i.message)li.append(el('p','fb-msg',i.message));
+    const meta=el('p','fb-meta');if(i.contact){meta.append('Reply to: ');if(/^[^\s@<>"]+@[^\s@<>"]+\.[a-z]{2,}$/i.test(i.contact)){const a=el('a','',i.contact);a.href='mailto:'+i.contact;meta.append(a);}else meta.append(i.contact);meta.append('. ');}
+    meta.append([ctx.version?'Version '+ctx.version:'',browserName(ctx.browser),ctx.screen?'screen '+ctx.screen:'',ctx.courts!=null?`${ctx.courts} ${ctx.courts===1?'court':'courts'}, ${ctx.players} ${ctx.players===1?'player':'players'}, ${ctx.waiting} waiting`:'',ctx.qr?'QR check-in on':''].filter(Boolean).join(', '));li.append(meta);list.append(li);}
+}
+$('fb-filters').onclick=e=>{const f=e.target.dataset.filter;if(!f||f===fbFilter)return;fbFilter=f;drawFeedback();};
 let resizeTimer;addEventListener('resize',()=>{clearTimeout(resizeTimer);resizeTimer=setTimeout(()=>{if(data&&!$('report').hidden)draw();},150);});
 load();
 </script>

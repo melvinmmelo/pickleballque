@@ -4,6 +4,7 @@
 <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Sideout · Pickleball queue</title>
 <link rel="stylesheet" href="sponsors.css?v=2026-11-10h">
+<link rel="stylesheet" href="feedback.css?v=2026-11-10k">
 <style>
 /* Archivo variable font, bundled so the app works offline (vendor/fonts, SIL OFL 1.1). */
 @font-face{font-family:Archivo;font-style:normal;font-weight:100 900;font-stretch:62% 125%;font-display:swap;src:url(vendor/fonts/archivo-latin-ext.woff2) format('woff2');unicode-range:U+0100-02BA,U+02BD-02C5,U+02C7-02CC,U+02CE-02D7,U+02DD-02FF,U+0304,U+0308,U+0329,U+1D00-1DBF,U+1E00-1E9F,U+1EF2-1EFF,U+2020,U+20A0-20AB,U+20AD-20C4,U+2113,U+2C60-2C7F,U+A720-A7FF}
@@ -202,7 +203,7 @@ input[type=color]{padding:2px;height:42px;cursor:pointer}
 <header class="bar">
   <div class="brand-row"><img id="club-logo" class="club-logo" alt="Club logo" hidden><div class="mark">sideout</div></div>
   <div class="totals"><span id="session-count"></span><span id="player-count"></span></div>
-  <nav><button class="tool" id="customize" type="button" hidden>Customize</button><a class="tool" href="#checkin">QR check-in</a><a class="tool" href="#saved">Saved sessions</a><button class="tool" id="undo" disabled>Undo</button></nav>
+  <nav><button class="tool" id="customize" type="button" hidden>Customize</button><button class="tool" id="feedback-open" type="button">Feedback</button><a class="tool" href="#checkin">QR check-in</a><a class="tool" href="#saved">Saved sessions</a><button class="tool" id="undo" disabled>Undo</button></nav>
 </header>
 <main>
 <section id="sponsor-strip" class="sponsors" aria-label="Sponsors" hidden></section>
@@ -265,6 +266,8 @@ function nextPlayers(returning=[]){const ordered=nextOrder(returning),chosen=sta
 function player(id){return state.players.find(p=>p.id===id);}
 const plural=(n,word)=>`${n} ${word}${n===1?'':'s'}`;
 const stat=(kind,detail)=>window.SideoutStats?.track(kind,detail);
+// Counts only, for bug reports from the Feedback form; never names.
+window.sideoutDiagnostics=()=>({courts:state.courts.length,players:state.players.length,waiting:state.queue.length,qr:!!state.checkin});
 let guessCounts=null;const lastSplit=new Map();
 // Players' guesses on who wins, as a split bar under the court: Team A on the left, Team B on the right, like the drawing.
 function guessBar(c){const g=guessCounts[c.game]||{},a=Number(g.A)||0,b=Number(g.B)||0,total=a+b,team=i=>`${player(c.current[i]).name} and ${player(c.current[i+1]).name}`;
@@ -418,5 +421,6 @@ render();
 <script src="checkin.js?v=2026-11-10i"></script>
 <script src="archives.js?v=2026-11-10i"></script>
 <script src="customize.js?v=2026-11-10i"></script>
+<script src="feedback.js?v=2026-11-10k"></script>
 </body>
 </html>

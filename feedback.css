@@ -1,0 +1,31 @@
+/* Feedback and bug report form, shared by the organizer and player pages. */
+#feedback-dialog{width:min(560px,92vw);max-height:90vh;overflow:auto;border:0;border-radius:16px;padding:22px 24px;color:var(--ink,#0f2438);background:var(--surface,#fff)}
+#feedback-dialog::backdrop{background:#0f243880}
+#feedback-dialog .sr-only{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap}
+#feedback-dialog fieldset{border:0;padding:0;margin:0;min-width:0}
+.fb-head{display:flex;justify-content:space-between;align-items:center;gap:12px}
+.fb-head h2{margin:0;font-stretch:112%;font-weight:800;font-size:22px;letter-spacing:-.01em}
+.fb-close{background:none;border:0;padding:6px 2px;font:inherit;font-weight:650;color:var(--muted,#56697a);text-decoration:underline;text-underline-offset:3px;cursor:pointer}
+.fb-kind{display:grid!important;grid-template-columns:1fr 1fr;gap:4px;margin-top:16px!important;background:var(--page,#e6ecef);border-radius:12px;padding:4px!important}
+.fb-kind label{display:block;text-align:center;padding:9px 10px;border-radius:9px;font-weight:650;cursor:pointer}
+.fb-kind input{position:absolute;opacity:0;pointer-events:none}
+.fb-kind label:has(input:checked){background:var(--surface,#fff);box-shadow:0 1px 3px #0f243826}
+.fb-kind label:has(input:focus-visible),.fb-stars label:has(input:focus-visible){outline:3px solid var(--court,#2b5d8c);outline-offset:1px}
+.fb-rating{margin-top:18px!important}
+.fb-rating[hidden]{display:none}
+.fb-rating legend{font-weight:650;padding:0;margin-bottom:6px}
+.fb-stars{display:inline-flex;gap:2px;vertical-align:middle}
+.fb-stars label{cursor:pointer;display:grid;place-items:center;width:42px;height:42px;border-radius:8px}
+.fb-stars svg{width:30px;height:30px;fill:none;stroke:#7a8b99;stroke-width:1.6;stroke-linejoin:round}
+.fb-stars label.on svg{fill:#f2b705;stroke:#a87800}
+.fb-rating-text{margin-left:8px;color:var(--muted,#56697a);font-size:14px}
+.fb-label{display:block;font-weight:650;margin:16px 0 6px}
+#feedback-dialog textarea,#feedback-contact{display:block;width:100%;font:inherit;padding:11px 12px;border:1px solid var(--rule,#c6d2d9);border-radius:10px;background:#fff;color:inherit;margin:0}
+#feedback-dialog textarea{resize:vertical;min-height:110px}
+#feedback-dialog textarea:focus-visible,#feedback-contact:focus-visible,.fb-send:focus-visible,.fb-close:focus-visible{outline:3px solid var(--court,#2b5d8c);outline-offset:2px}
+.fb-trap{position:absolute;left:-9999px;width:1px;height:1px;overflow:hidden}
+.fb-note{font-size:13px;color:var(--muted,#56697a);margin:12px 0 0}
+.fb-status{min-height:1.4em;margin:10px 0 0;font-weight:600}
+.fb-actions{display:flex;justify-content:flex-end;margin-top:6px}
+.fb-send{background:var(--ink,#0f2438);color:#fff;border:0;border-radius:10px;padding:12px 20px;font:inherit;font-weight:700;cursor:pointer}
+.fb-send:disabled{opacity:.5;cursor:wait}
