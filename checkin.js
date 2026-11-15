@@ -26,7 +26,7 @@ function poll(){if(waiting||!state.checkin||!CheckinAPI.configured()||document.h
 async function sync(){const shared=state.checkin;if(!shared)return false;
 try{const result=await CheckinAPI.call('poll',{p_session:shared.id,p_owner:shared.owner});if(state.checkin!==shared)return;
 let changed=false,changedView=false;for(const arrival of result.arrivals){if(shared.seen.includes(arrival.id))continue;const name=cleanName(arrival.name);
-if(typeof arrival.id==='string'&&visibleName(name)&&!(Number(arrival.leaves)>0)&&!state.players.some(p=>p.id===arrival.id||p.name.toLocaleLowerCase()===name.toLocaleLowerCase())){state.players.push({id:arrival.id,name,games:0});state.queue.push(arrival.id);}shared.seen.push(arrival.id);changed=true;}
+if(typeof arrival.id==='string'&&visibleName(name)&&!((Number(arrival.leaves)||0)>(Number(arrival.rejoins)||0))&&!state.players.some(p=>p.id===arrival.id||p.name.toLocaleLowerCase()===name.toLocaleLowerCase())){state.players.push({id:arrival.id,name,games:0});state.queue.push(arrival.id);}shared.seen.push(arrival.id);changed=true;}
 // Players who tapped Leave on their phone move from the queue to Left, keeping their games.
 // Someone on court is listed in pendingLeaves and goes to Left when their game is finished.
 const counts=result.guesses&&typeof result.guesses==='object'?result.guesses:null;if(JSON.stringify(counts)!==JSON.stringify(guessCounts)){guessCounts=counts;changedView=true;}
@@ -34,10 +34,15 @@ const departed=[];shared.leaves=shared.leaves||{};pendingLeaves.clear();
 for(const arrival of result.arrivals){const id=arrival.id,count=Number(arrival.leaves)||0;if(count<=(shared.leaves[id]||0))continue;
 if(state.courts.some(c=>c.current.includes(id))){pendingLeaves.add(id);continue;}
 shared.leaves[id]=count;changed=true;if(state.queue.includes(id)){state.queue=state.queue.filter(x=>x!==id);state.left=[...(state.left||[]),id];if((state.lineup||[]).includes(id))state.lineup=[];state.skipped=(state.skipped||[]).filter(x=>x!==id);departed.push(player(id).name);}}
-if(departed.length)$('announcement').textContent=departed.join(', ')+' left the session.';
+// Players who left and tapped Rejoin on their phone go to the end of the queue, keeping their games.
+const returned=[];shared.rejoins=shared.rejoins||{};
+for(const arrival of result.arrivals){const id=arrival.id,count=Number(arrival.rejoins)||0;if(count<=(shared.rejoins[id]||0))continue;
+shared.rejoins[id]=count;changed=true;if((state.left||[]).includes(id)){state.left=state.left.filter(x=>x!==id);state.queue.push(id);returned.push(player(id).name);}}
+const notes=[departed.length?departed.join(', ')+' left the session.':'',returned.length?returned.join(', ')+(returned.length===1?' is':' are')+' back in the queue.':''].filter(Boolean).join(' ');
+if(notes)$('announcement').textContent=notes;
 if(changed){previous=null;persist();paint();}else if(changedView)paint();
 await publish(shared);await pushBrand(shared);await pushSponsors(shared);await loadRequests(shared,result.closed);
-message((result.closed?'This QR is closed or expired. Close check-in here to enable a new QR.':'Check-in is on. Arrivals are up to date.')+(departed.length?' '+departed.join(', ')+' left the session.':'')+(brandNote?' '+brandNote:''));return true;
+message((result.closed?'This QR is closed or expired. Close check-in here to enable a new QR.':'Check-in is on. Arrivals are up to date.')+(notes?' '+notes:'')+(brandNote?' '+brandNote:''));return true;
 }catch(e){message(e.message+' Manual entry still works.');return false;}}
 function applyCounts(counts){let changed=false;for(const p of state.players){const used=Math.max(p.customUsed||0,counts[p.id]||0);if(used!==(p.customUsed||0)){p.customUsed=used;changed=true;}const old=previous?.players.find(x=>x.id===p.id);if(old)old.customUsed=Math.max(old.customUsed||0,used);}if(changed){persist();paint();}}
 async function publish(shared){if(state.checkin!==shared)return;const counts=await CheckinAPI.call('publish_live',{p_session:shared.id,p_owner:shared.owner,p_state:{players:state.players,queue:nextOrder(),courts:state.courts,completed:state.completed,lineup:state.lineup||[],next:nextPlayers(),left:state.left||[]}});if(state.checkin===shared)applyCounts(counts);return counts;}
