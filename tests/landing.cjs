@@ -12,9 +12,12 @@ const p=await page({viewport:{width:1280,height:900}});await p.goto(base+'/');
 assert.equal(await p.locator('#start').getAttribute('href'),'app.html');assert.equal(await p.locator('.site .btn').getAttribute('href'),'app.html');assert.equal(await p.locator('#start').textContent(),'Start a session');
 const stages=new Set();for(let i=0;i<70&&!(await p.locator('#demo-pause').isVisible());i++){stages.add(await p.locator('#demo-state').textContent());await p.waitForTimeout(40);}
 for(const s of ['Painting the court…','Drawing the lines…','Raising the net…'])assert(stages.has(s),'missing stage '+s);
-assert.deepEqual(await courtNames(p),['Din','Dindi','Melo','Billie']);
-await p.waitForFunction(()=>document.getElementById('demo-state').textContent==='Game 8 in progress',null,{timeout:20000});await p.waitForFunction(()=>!document.querySelector('#demo .flying'),null,{timeout:3000});
-assert.deepEqual(await courtNames(p),['Ana','Bo','Cyrus','Dee'],'Next four walk on');assert.deepEqual((await p.locator('#demo-deck .name').allTextContents()).slice(-4),['Din','Dindi','Melo','Billie'],'Finishing four go to the back');
+// The demo keeps rotating, so read one settled moment (game number, court and line together) rather than waiting for an exact game.
+// A slow machine can arrive after Game 8 has already gone by.
+const NAMES=['Din','Dindi','Melo','Billie','Ana','Bo','Cyrus','Dee','Eli','Fay','Gus','Hana'],four=k=>NAMES.slice(4*k%12,4*k%12+4);
+const snap=await (await p.waitForFunction(()=>{const m=/^Game (\d+) in progress$/.exec(document.getElementById('demo-state').textContent);if(!m||+m[1]<8||document.querySelector('#demo .flying'))return null;
+return {game:+m[1],court:[...document.querySelectorAll('#demo-surface .name')].map(n=>n.textContent),deck:[...document.querySelectorAll('#demo-deck .name')].map(n=>n.textContent)};},null,{timeout:20000})).jsonValue();
+assert.deepEqual(snap.court,four(snap.game-7),'Next four walk on');assert.deepEqual(snap.deck.slice(-4),four(snap.game-8),'Finishing four go to the back');assert.equal(snap.deck.length,8);
 // 2. Pause holds the court still; Play resumes.
 await p.getByRole('button',{name:'Pause animation',exact:true}).click();const held=await p.locator('#demo-state').textContent();await p.waitForTimeout(6500);assert.equal(await p.locator('#demo-state').textContent(),held,'Paused demo does not rotate');
 await p.getByRole('button',{name:'Play animation',exact:true}).click();await p.waitForFunction(h=>!document.getElementById('demo-state').textContent.startsWith(h.slice(0,7))||document.getElementById('demo-state').textContent!==h,held,{timeout:8000});
