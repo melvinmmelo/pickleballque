@@ -91,6 +91,21 @@ main{max-width:1240px;margin:0 auto;padding:4px 20px 40px}
 .actions.single{grid-template-columns:1fr}
 .actions button{border-radius:10px;padding:13px 12px;font-weight:700;font-size:15px}
 .finish-only{background:transparent;color:#fff;border:1.5px solid var(--apron-edge)!important}
+/* Players on court are buttons: tap one, then another, and they switch places. */
+button.player-chip{background:none;color:inherit;padding:6px 8px;border-radius:6px}
+button.player-chip:hover{background:#ffffff26}
+button.player-chip.picked{background:var(--ball);color:var(--on-ball)}
+.switch-hint{font-size:13px;color:var(--apron-text);text-align:center;margin-top:8px}
+/* Winner and score: a two-line scoreboard, Team A first. Used on a court in play and when editing a finished game. */
+.court-result{margin-top:14px}
+.result-label{font-size:13px;color:var(--apron-text);margin-bottom:6px}
+.result{display:grid;gap:6px}
+.result .line{display:grid;grid-template-columns:minmax(0,1fr) 58px;gap:8px}
+.result .team{background:transparent;color:#fff;border:1.5px solid var(--apron-edge);text-align:left;padding:9px 12px;font-weight:650;font-size:14px;display:flex;justify-content:space-between;align-items:center;gap:8px;overflow-wrap:anywhere;min-width:0}
+.result .team.won{background:var(--ball);color:var(--on-ball);border-color:var(--ball)}
+.result .team.won::after{content:"Winner";font-size:11px;font-weight:800;letter-spacing:.06em;text-transform:uppercase}
+.result .score{padding:8px 4px;text-align:center;font-weight:800;font-size:18px;font-stretch:112%;border:0;border-radius:10px}
+.result-note{font-size:13px;font-weight:650;color:#fff}
 
 .add-court{border:2px dashed var(--rule);background:transparent;border-radius:18px;min-height:56px;color:var(--muted);font-weight:700;font-size:16px}
 .add-court:hover{border-color:var(--muted);color:var(--ink)}
@@ -134,6 +149,26 @@ input{width:100%;min-width:0;padding:12px 14px;border:1px solid var(--rule);bord
 .remove.return{color:var(--court);margin-right:6px}
 .roster-table tr.left td:not(.rm){color:var(--muted)}
 .roster-table td.empty{color:var(--muted);text-align:center;padding:24px 8px;border-bottom:0}
+.wl{display:block;font-size:12px;font-weight:600;font-stretch:100%;color:var(--muted);white-space:nowrap}
+/* Game results: one row per finished game, newest first. */
+.results-card{grid-column:1/-1;margin-top:0}
+.results{list-style:none;margin:0;padding:0}
+.results li{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:4px 12px;align-items:center;padding:12px 0;border-bottom:1px solid var(--rule)}
+.results li:last-child{border-bottom:0}
+.results .when{font-size:13px;color:var(--muted)}
+.results .teams{font-size:16px;overflow-wrap:anywhere}
+.results .teams b{font-weight:800}
+.results .sc{font-stretch:112%;font-weight:800;margin:0 10px;white-space:nowrap}
+.results .vs{color:var(--muted);margin:0 10px}
+.tag-won{font-size:11px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;background:var(--ball);color:var(--on-ball);border-radius:5px;padding:2px 6px;margin-left:6px;vertical-align:2px}
+.results .edit{grid-column:1/-1;max-width:420px}
+.results .result .team{color:var(--ink);border-color:var(--rule)}
+.results .result .team.won{border-color:var(--ball)}
+.results .result .score{border:1px solid var(--rule)}
+.results .result-note{color:var(--danger)}
+.edit-actions{display:flex;gap:8px;margin-top:10px}
+.edit-actions button:not(.dark){border:1px solid var(--rule)}
+#results-more{margin-top:6px}
 
 /* Panels added by checkin.js and archives.js */
 .card{background:var(--surface);border-radius:16px;padding:22px 24px;margin-top:28px}
@@ -222,8 +257,13 @@ input[type=color]{padding:2px;height:42px;cursor:pointer}
   <section aria-labelledby="players-h">
     <div class="head"><h2 id="players-h">Players</h2></div>
     <form id="add-form" class="entry"><label class="sr-only" for="nickname">Player nickname</label><input id="nickname" placeholder="Add a nickname" maxlength="30" autocomplete="off" required><button class="dark" type="submit">Add</button></form>
-    <p class="helper">New players join the back of the queue. To remove someone on court, finish their game first.</p>
+    <p class="helper">New players join the back of the queue. To remove someone on court, finish their game first. Wins and losses appear under Games once a winner is recorded.</p>
     <table class="roster-table"><thead><tr><th>Name</th><th>Games</th><th>Now</th><th class="custom" title="Custom lineups used">Custom</th><th><span class="sr-only">Remove</span></th></tr></thead><tbody id="roster" class="roster"></tbody></table>
+  </section>
+  <section id="results" class="card results-card" aria-labelledby="results-h" hidden>
+    <div class="card-head"><h2 id="results-h">Game results</h2><p id="results-count" class="helper"></p></div>
+    <ol id="results-list" class="results"></ol>
+    <button id="results-more" class="quiet" type="button" hidden></button>
   </section>
 </div>
 <div class="footer"><span id="save-status">Saved on this browser</span><button class="quiet danger" id="reset">Reset session</button><button class="quiet stats" id="stats-toggle" type="button" hidden></button></div>
@@ -244,13 +284,26 @@ const $=id=>document.getElementById(id);
 const cleanName=s=>String(s??'').replace(/\s+/g,' ').trim(),visibleName=s=>/[^\s\p{Cc}\p{Cf}]/u.test(s);
 function repairNames(s){const list=Array.isArray(s?.players)?s.players.filter(p=>p&&typeof p.name==='string'):[],taken=new Set(list.map(p=>p.name.toLocaleLowerCase()));let n=1;for(const p of list)if(!visibleName(p.name)){while(taken.has('player '+n))n++;p.name='Player '+n;taken.add('player '+n);}return s;}
 const newId=()=>globalThis.crypto?.randomUUID?.()||`${Date.now()}-${Math.random().toString(36).slice(2)}`;
-function migrate(s){repairNames(s);if(Array.isArray(s?.courts))for(const c of s.courts)if(c&&Array.isArray(c.current)&&c.current.length===4&&typeof c.game!=='string')c.game=newId();if(s&&!s.courts&&Array.isArray(s.current)){s.courts=[{id:1,current:s.current}];delete s.current;}if(s&&Array.isArray(s.lineup)&&s.lineup.length===4&&Array.isArray(s.queue)&&!s.lineupAtBack){s.queue=s.queue.filter(id=>!s.lineup.includes(id)).concat(s.lineup);s.lineupAtBack=true;}return s;}
+// Game results: every finished game is logged with its teams (first two names are Team A). The winner and score
+// are optional; they can be entered on the court before finishing or added later from the Game results list.
+const okScore=(s,partial)=>Array.isArray(s)&&s.length===2&&s.every(n=>(partial&&n===null)||(Number.isInteger(n)&&n>=0&&n<=99));
+const okResult=r=>!!r&&typeof r.id==='string'&&Number.isInteger(r.n)&&Number.isInteger(r.court)&&Array.isArray(r.ids)&&r.ids.length===4&&r.ids.every(x=>typeof x==='string')&&Array.isArray(r.names)&&r.names.length===4&&r.names.every(x=>typeof x==='string')&&(r.winner===null||r.winner==='A'||r.winner==='B')&&(r.score===null||okScore(r.score,false));
+// What a draft says: a full score decides the winner; without a score the tapped winner counts; half a score or a tie is an error.
+function outcome(d){const s=d.score;if(s&&(s[0]!=null||s[1]!=null)){if(s[0]==null||s[1]==null)return{error:'Enter both scores, or clear the score.',winner:null,score:null};if(s[0]===s[1])return{error:'Scores can’t be tied. Fix the score, or clear it.',winner:null,score:null};return{winner:s[0]>s[1]?'A':'B',score:[s[0],s[1]]};}return{winner:d.winner==='A'||d.winner==='B'?d.winner:null,score:null};}
+// Wins and losses per player id, from games with a recorded winner.
+function winLoss(results){const record=new Map();for(const r of results||[])if(r.winner)r.ids.forEach((id,i)=>{const x=record.get(id)||[0,0];x[(i<2)===(r.winner==='A')?0:1]++;record.set(id,x);});return record;}
+function migrate(s){repairNames(s);if(Array.isArray(s?.courts))for(const c of s.courts)if(c&&Array.isArray(c.current)&&c.current.length===4&&typeof c.game!=='string')c.game=newId();if(s&&!s.courts&&Array.isArray(s.current)){s.courts=[{id:1,current:s.current}];delete s.current;}
+// Results and score drafts that don't have the expected shape are dropped rather than failing the whole session.
+if(s&&s.results!==undefined)s.results=Array.isArray(s.results)?s.results.filter(okResult).slice(-300):[];
+if(Array.isArray(s?.courts))for(const c of s.courts)if(c){if(c.score!==undefined&&!okScore(c.score,true))delete c.score;if(c.winner!==undefined&&c.winner!=='A'&&c.winner!=='B')delete c.winner;}
+if(s&&Array.isArray(s.lineup)&&s.lineup.length===4&&Array.isArray(s.queue)&&!s.lineupAtBack){s.queue=s.queue.filter(id=>!s.lineup.includes(id)).concat(s.lineup);s.lineupAtBack=true;}return s;}
 function valid(s){
 if(!s||!Array.isArray(s.players)||!Array.isArray(s.queue)||!Array.isArray(s.courts)||!s.courts.length||!Number.isInteger(s.completed)||s.completed<0)return false;
 if(!s.players.every(p=>p&&typeof p.id==='string'&&typeof p.name==='string'&&p.name.trim()&&Number.isInteger(p.games)&&p.games>=0))return false;
 if(!s.courts.every(c=>c&&Number.isInteger(c.id)&&c.id>0&&Array.isArray(c.current)&&(c.current.length===0||c.current.length===4))||new Set(s.courts.map(c=>c.id)).size!==s.courts.length)return false;
 if(s.lineup!==undefined&&(!Array.isArray(s.lineup)||(s.lineup.length!==0&&s.lineup.length!==4)||new Set(s.lineup).size!==s.lineup.length||s.lineup.some(id=>!s.queue.includes(id))))return false;
 if(s.left!==undefined&&!Array.isArray(s.left))return false;
+if(s.results!==undefined&&!(Array.isArray(s.results)&&s.results.every(okResult)))return false;
 const ids=s.players.map(p=>p.id),all=[...s.queue,...s.courts.flatMap(c=>c.current),...(s.left||[])];
 return new Set(ids).size===ids.length&&all.length===ids.length&&new Set(all).size===ids.length&&all.every(id=>ids.includes(id))&&(s.skipped===undefined||(Array.isArray(s.skipped)&&s.skipped.every(id=>ids.includes(id))&&new Set(s.skipped).size===s.skipped.length));
 }
@@ -266,6 +319,48 @@ if(behind.length>=needed)ahead.push(...behind.splice(0,needed));
 return [...ahead,...chosen,...behind];}
 function nextPlayers(returning=[]){const ordered=nextOrder(returning),chosen=state.lineup||[],first=ordered.slice(0,4);if(chosen.length===4&&first.some(id=>chosen.includes(id))&&!first.every(id=>chosen.includes(id)))return first.slice(0,first.findIndex(id=>chosen.includes(id)));return first;}
 function player(id){return state.players.find(p=>p.id===id);}
+// Switch players: tap one player on court, then another, and they trade places (on the same court or across courts).
+let picked=null;
+const courtOf=id=>state.courts.find(c=>c.current.includes(id));
+const switchHint=()=>{const name=picked&&player(picked)?.name;return name?`Tap who ${name} switches with, or tap ${name} again to cancel.`:'Tap two players to switch them.';};
+function showPicked(){for(const el of document.querySelectorAll('#courts .player-chip')){const on=el.dataset.flipId==='p-'+picked;el.classList.toggle('picked',on);el.setAttribute('aria-pressed',String(on));}
+for(const el of document.querySelectorAll('#courts .switch-hint'))el.textContent=switchHint();}
+function pick(id){if(picked===id){picked=null;showPicked();$('announcement').textContent=`${player(id).name} is no longer selected.`;return;}
+if(!picked||!courtOf(picked)){picked=id;showPicked();$('announcement').textContent=`${player(id).name} selected. Choose another player on court to switch places.`;return;}
+const a=picked,b=id,names=`${player(a).name} and ${player(b).name}`;picked=null;
+change(()=>{const ca=courtOf(a),cb=courtOf(b),ia=ca.current.indexOf(a),ib=cb.current.indexOf(b);ca.current[ia]=b;cb.current[ib]=a;
+// Changed teams count as a new game for players' guesses: guesses made on the old teams no longer apply.
+if(ca!==cb||(ia<2)!==(ib<2)){ca.game=newId();cb.game=newId();}},`${names} switched places.`);
+document.querySelector(`[data-keep="chip-${b}"]`)?.focus({preventScroll:true});}
+document.addEventListener('keydown',e=>{if(e.key==='Escape'&&picked){picked=null;showPicked();}});
+// Winner and score entry for one game. `draft` holds {score:[a,b],winner}; on a court it is the court itself, so a
+// half-typed score survives reloads. Messages are kept by key so a background re-render doesn't wipe them.
+const resultNotes=new Map();
+function resultNote(key,text){if(text)resultNotes.set(key,text);else resultNotes.delete(key);const el=document.querySelector(`[data-note="${key}"]`);if(el){el.textContent=text||'';el.hidden=!text;}}
+function resultEditor(names,draft,key,changed){
+const box=node('div','result'),buttons=[],paint=()=>{const w=outcome(draft).winner;buttons.forEach((b,t)=>{const on=w==='AB'[t];b.classList.toggle('won',on);b.setAttribute('aria-pressed',String(on));});};
+box.setAttribute('role','group');box.setAttribute('aria-label','Winner and score');
+[`${names[0]} & ${names[1]}`,`${names[2]} & ${names[3]}`].forEach((team,t)=>{const line=node('div','line'),b=node('button','team',team),i=node('input','score');
+b.type='button';b.dataset.keep=`${key}-team-${t}`;b.setAttribute('aria-label',`Winner: ${team}`);
+b.onclick=()=>{const s=draft.score;if(s&&s[0]!=null&&s[1]!=null&&s[0]!==s[1]){resultNote(key,outcome(draft).winner==='AB'[t]?'':'The score decides the winner. Change the score to change it.');return;}
+if(draft.winner==='AB'[t])delete draft.winner;else draft.winner='AB'[t];resultNote(key,'');changed();paint();};
+i.inputMode='numeric';i.maxLength=2;i.autocomplete='off';i.placeholder='–';i.dataset.keep=`${key}-score-${t}`;i.setAttribute('aria-label',`Score for ${team}`);i.value=draft.score?.[t]??'';
+i.oninput=()=>{const digits=i.value.replace(/\D/g,'').slice(0,2);if(i.value!==digits)i.value=digits;const s=draft.score?[...draft.score]:[null,null];s[t]=digits===''?null:Number(digits);
+if(s[0]==null&&s[1]==null)delete draft.score;else{draft.score=s;if(s[0]!=null&&s[1]!=null&&s[0]!==s[1])delete draft.winner;}resultNote(key,'');changed();paint();};
+buttons.push(b);line.append(b,i);box.append(line);});
+const note=node('p','result-note',resultNotes.get(key)||'');note.dataset.note=key;note.setAttribute('role','alert');note.hidden=!resultNotes.has(key);box.append(note);paint();return box;}
+// One finished game in the Game results list; Edit (or Add result) opens the same winner and score entry.
+let editing=null,allResults=false;
+function resultRow(r){const li=node('li'),info=node('div'),line=node('div','teams'),team=(text,won)=>{const el=node(won?'b':'span','',text);if(won)el.append(node('span','tag-won','Won'));return el;};
+line.append(team(`${r.names[0]} & ${r.names[1]}`,r.winner==='A'),r.score?node('span','sc',`${r.score[0]}–${r.score[1]}`):node('span','vs','vs'),team(`${r.names[2]} & ${r.names[3]}`,r.winner==='B'));
+info.append(node('div','when',`Game ${r.n} · Court ${r.court}${r.winner?'':' · No result recorded'}`),line);li.append(info);
+if(editing?.id!==r.id){const edit=node('button','quiet',r.winner?'Edit':'Add result');edit.type='button';edit.dataset.keep='edit-'+r.id;edit.setAttribute('aria-label',`${r.winner?'Edit':'Add'} result for game ${r.n}`);
+edit.onclick=()=>{editing={id:r.id,draft:r.score?{score:[...r.score]}:r.winner?{winner:r.winner}:{}};render();document.querySelector(`[data-keep="r-${r.id}-score-0"]`)?.focus();};li.append(edit);return li;}
+const key='r-'+r.id,form=node('div','edit'),actions=node('div','edit-actions'),save=node('button','dark','Save result'),cancel=node('button','','Cancel'),close=()=>{editing=null;resultNotes.delete(key);};
+save.type=cancel.type='button';save.dataset.keep=key+'-save';
+save.onclick=()=>{const o=outcome(editing.draft);if(o.error){resultNote(key,o.error);return;}close();change(()=>{const x=state.results.find(x=>x.id===r.id);x.winner=o.winner;x.score=o.score;},o.winner?`Result saved for game ${r.n}.`:`Result cleared for game ${r.n}.`);document.querySelector(`[data-keep="edit-${r.id}"]`)?.focus();};
+cancel.onclick=()=>{close();render();document.querySelector(`[data-keep="edit-${r.id}"]`)?.focus();};
+actions.append(save,cancel);form.append(resultEditor(r.names,editing.draft,key,()=>{}),node('p','helper','Clear the score and the winner to save this game with no result.'),actions);li.append(form);return li;}
 const plural=(n,word)=>`${n} ${word}${n===1?'':'s'}`;
 const stat=(kind,detail)=>window.SideoutStats?.track(kind,detail);
 // Counts only, for bug reports from the Feedback form; never names.
@@ -326,16 +421,16 @@ tl.fromTo(card,{opacity:0,scale:.97},{opacity:1,scale:1,duration:.35,clearProps:
 .fromTo(surface,{'--net':0},{'--net':1,duration:.35,ease:'back.out(2)'},at+1.05)
 .from(card.querySelectorAll('.player-chip,.preview'),{opacity:0,y:-10,duration:.35,stagger:.06,ease:'back.out(2)',clearProps:'all'},at+1.2)
 .call(()=>{if(state&&state.dataset.real){state.textContent=state.dataset.real;delete state.dataset.real;}},null,at+1.3)
-.from(card.querySelectorAll('.court-logo,.guesses,.actions,.court-foot'),{opacity:0,duration:.4,clearProps:'opacity'},at+1.25);});
+.from(card.querySelectorAll('.court-logo,.switch-hint,.guesses,.court-result,.actions,.court-foot'),{opacity:0,duration:.4,clearProps:'opacity'},at+1.25);});
 const end=Math.max(0,cards.length-1)*.3+1.3;
 if(page)tl.from('#add-court',{opacity:0,duration:.3,clearProps:'opacity'},end).from('#next li, #later li',{opacity:0,y:8,duration:.3,stagger:.04,clearProps:'all'},end).from('#roster tr',{opacity:0,duration:.3,stagger:{amount:.4},clearProps:'opacity'},end);
 intro=tl;}
 // Name positions by flip id, so only names that actually change place get the in-flight token style.
-const namePositions=()=>new Map(Array.from(document.querySelectorAll('span[data-flip-id]'),el=>{const r=el.getBoundingClientRect();return [el.dataset.flipId,r.left+r.top*1e4];}));
+const namePositions=()=>new Map(Array.from(document.querySelectorAll(':is(span,button)[data-flip-id]'),el=>{const r=el.getBoundingClientRect();return [el.dataset.flipId,r.left+r.top*1e4];}));
 function animate(before,places){
 if(!hasMotion())return;
 if(!before){buildCourts();return;}
-const moving=Array.from(document.querySelectorAll('span[data-flip-id]')).filter(el=>{const r=el.getBoundingClientRect(),was=places.get(el.dataset.flipId);return was!==undefined&&Math.abs(was-(r.left+r.top*1e4))>2;});
+const moving=Array.from(document.querySelectorAll(':is(span,button)[data-flip-id]')).filter(el=>{const r=el.getBoundingClientRect(),was=places.get(el.dataset.flipId);return was!==undefined&&Math.abs(was-(r.left+r.top*1e4))>2;});
 moving.forEach(el=>el.classList.add('flying'));
 Flip.from(before,{targets:'[data-flip-id]',duration:.6,ease:'power3.inOut',stagger:.025,scale:true,prune:true,zIndex:5,onComplete:()=>moving.forEach(el=>el.classList.remove('flying')),
 onEnter:els=>{gsap.fromTo(els,{autoAlpha:0,y:10},{autoAlpha:1,y:0,duration:.4,ease:'power2.out',clearProps:'all'});const rows=els.filter(el=>el.tagName==='TR');if(rows.length)gsap.fromTo(rows,{backgroundColor:'#DCF24A'},{backgroundColor:'rgba(220,242,74,0)',duration:1.6,ease:'power1.out',clearProps:'backgroundColor'});}});
@@ -351,6 +446,8 @@ $('player-count').replaceChildren(node('b','',String(here)),` player${here===1?'
 $('waiting-count').textContent=`${state.queue.length} waiting`;
 const returning=state.courts.length===1?state.courts[0].current:[];
 const ready=nextPlayers(),firstOpen=state.courts.find(c=>!c.current.length);
+if(picked&&!courtOf(picked))picked=null;
+const active=document.activeElement,keep=active?.dataset?.keep,caret=keep&&active.tagName==='INPUT'?[active.selectionStart,active.selectionEnd]:null;
 const courts=$('courts');courts.replaceChildren();
 state.courts.forEach(c=>{
 const playing=c.current.length>0,preview=!playing&&c===firstOpen&&ready.length===4,names=playing?c.current:preview?ready:[];
@@ -359,14 +456,16 @@ const head=node('header','court-head');
 head.append(node('span','num',String(c.id)),node('span','state',playing?'Game in progress':preview?'Open, next four shown':c!==firstOpen?'Open':state.queue.length<4?`Open, needs ${plural(4-state.queue.length,'more player')}`:'Open, waiting for players ahead of the custom group'));
 if(brand?.courtLogo){const logo=node('img','court-logo');logo.src=brand.courtLogo;logo.alt='';head.append(logo);}
 const foot=node('div','court-foot');if(state.courts.length>1){const remove=node('button','quiet','Remove court');remove.type='button';remove.disabled=playing;remove.title=playing?'Use Finish game only before removing this court':'Remove this empty court';remove.onclick=()=>{remove.disabled=true;packUpCourt(remove.closest('.court'),()=>{change(()=>{state.courts=state.courts.filter(x=>x.id!==c.id);},'Court removed.');stat('court_removed');});};foot.append(remove);}
-const surface=node('div','surface');surface.setAttribute('role','img');
+const surface=node('div','surface');surface.setAttribute('role',playing?'group':'img');
 surface.setAttribute('aria-label',playing?`Court ${c.id}: ${player(names[0]).name} and ${player(names[1]).name} versus ${player(names[2]).name} and ${player(names[3]).name}`:preview?`Court ${c.id} is open. Next up: ${names.map(id=>player(id).name).join(', ')}`:`Court ${c.id} is open`);
-const box=(i,pos,side)=>{const el=node('div',`box ${pos} ${side}`);const id=names[i];if(id){const label=node('span',playing?'player-chip':'preview',player(id).name);if(playing)label.dataset.flipId='p-'+id;el.append(label);}return el;};
+const box=(i,pos,side)=>{const el=node('div',`box ${pos} ${side}`);const id=names[i];if(!id)return el;if(!playing){el.append(node('span','preview',player(id).name));return el;}
+const chip=node('button','player-chip',player(id).name),on=picked===id;chip.type='button';chip.dataset.flipId='p-'+id;chip.dataset.keep='chip-'+id;if(on)chip.classList.add('picked');chip.setAttribute('aria-pressed',String(on));chip.setAttribute('aria-label',`${player(id).name}, Team ${i<2?'A':'B'}`);chip.title='Tap, then tap another player on court to switch them';chip.onclick=()=>pick(id);el.append(chip);return el;};
 surface.append(box(0,'top','a'),box(1,'bottom','a'),node('div','kitchen left'),node('div','kitchen right'),box(2,'top','b'),box(3,'bottom','b'));
 const actions=node('div',playing?'actions':'actions single');
 if(playing){const finish=node('button','finish-only','Finish game only');finish.type='button';finish.title='Count this game and leave the court open';finish.onclick=()=>play(c.id,false);actions.append(finish);}
 const start=node('button','primary game-action',playing?'Finish game & rotate':'Start game');start.type='button';start.disabled=!playing&&ready.length<4;start.title=playing?'Count this game and start the next four':'Start a game with the next four';start.onclick=()=>play(c.id);actions.append(start);
-card.append(head,surface,...(playing&&guessCounts&&c.game?[guessBar(c)]:[]),actions);if(foot.childElementCount)card.append(foot);courts.append(card);
+const extras=[];if(playing){const result=node('div','court-result');result.append(node('p','result-label','Winner and score (optional)'),resultEditor(names.map(id=>player(id).name),c,'c-'+c.id,persist));extras.push(node('p','switch-hint',switchHint()),...(guessCounts&&c.game?[guessBar(c)]:[]),result);}
+card.append(head,surface,...extras,actions);if(foot.childElementCount)card.append(foot);courts.append(card);
 });
 const addCourt=node('button','add-court','Add court');addCourt.type='button';addCourt.id='add-court';addCourt.onclick=()=>{change(()=>{state.courts.push({id:Math.max(...state.courts.map(c=>c.id))+1,current:[]});},'Court added.');stat('court_added');};courts.append(addCourt);
 
@@ -384,17 +483,23 @@ if(open)later.append(node('p','helper',state.courts.some(c=>c.current.length)?'P
 
 const roster=$('roster');roster.replaceChildren();
 if(!state.players.length){const tr=node('tr'),td=node('td','empty','Add the first nickname to start the queue.');td.colSpan=5;tr.append(td);roster.append(tr);}
-const queued=nextOrder(),leftIds=state.left||[];[...state.courts.flatMap(c=>c.current),...queued,...leftIds].forEach(id=>{const p=player(id),on=state.courts.find(c=>c.current.includes(id)),gone=leftIds.includes(id),tr=node('tr',gone?'row left':'row');tr.dataset.flipId='r-'+id;
+const queued=nextOrder(),leftIds=state.left||[],record=winLoss(state.results);[...state.courts.flatMap(c=>c.current),...queued,...leftIds].forEach(id=>{const p=player(id),on=state.courts.find(c=>c.current.includes(id)),gone=leftIds.includes(id),tr=node('tr',gone?'row left':'row');tr.dataset.flipId='r-'+id;
 const remove=node('button','remove','Remove');remove.type='button';remove.setAttribute('aria-label',`Remove ${p.name}`);remove.title=on?'Use Finish game only before removing this player':'Remove player';remove.disabled=!!on;
 remove.onclick=()=>{if(confirm(`Remove ${p.name} and their game count from this session?`))change(()=>{if((state.lineup||[]).includes(id))state.lineup=[];state.queue=state.queue.filter(x=>x!==id);state.left=(state.left||[]).filter(x=>x!==id);state.players=state.players.filter(x=>x.id!==id);state.skipped=(state.skipped||[]).filter(x=>x!==id);},`${p.name} removed.`);};
 const rm=node('td','rm');if(gone){const back=node('button','remove return','Return');back.type='button';back.setAttribute('aria-label',`Return ${p.name} to the queue`);back.title='Put this player back at the end of the queue';back.onclick=()=>change(()=>{state.left=state.left.filter(x=>x!==id);state.queue.push(id);},`${p.name} is back in the queue.`);rm.append(back);}rm.append(remove);
-tr.append(node('td','',p.name),node('td','games',String(p.games)),node('td','where',on?`Court ${on.id}`:gone?'Left':`Queue ${queued.indexOf(id)+1}`),node('td','custom',`${p.customUsed||0}/2`),rm);roster.append(tr);});
+const games=node('td','games',String(p.games)),wl=record.get(id);if(wl){const tag=node('span','wl',`${wl[0]}W ${wl[1]}L`);tag.setAttribute('aria-hidden','true');games.append(node('span','sr-only',`, ${plural(wl[0],'win')}, ${wl[1]} ${wl[1]===1?'loss':'losses'}`),tag);}
+tr.append(node('td','',p.name),games,node('td','where',on?`Court ${on.id}`:gone?'Left':`Queue ${queued.indexOf(id)+1}`),node('td','custom',`${p.customUsed||0}/2`),rm);roster.append(tr);});
 
 const fields=$('lineup-fields'),draft=$('lineup-editor').open?Array.from(fields.querySelectorAll('select'),s=>s.value):[];fields.replaceChildren();
 for(let i=0;i<4;i++){const label=node('label','',`${i<2?'Team A':'Team B'}, player ${i%2+1}`),select=node('select');select.name=`slot${i}`;select.required=true;select.setAttribute('aria-label',`Lineup player ${i+1}`);const placeholder=node('option','','Choose player');placeholder.value='';select.append(placeholder);nextOrder([],false).forEach(id=>{const option=node('option','',player(id).name);option.value=id;option.disabled=(player(id).customUsed||0)>=2;if(option.disabled)option.textContent+=' (limit reached)';select.append(option);});select.value=draft[i]||(state.lineup||[])[i]||'';label.append(select);fields.append(label);}
 $('save-lineup').disabled=state.queue.length<4;$('clear-lineup').disabled=!(state.lineup||[]).length;
 $('lineup-status').textContent=(state.lineup||[]).length?'A custom group is queued last. Players ahead of it go first, and the four stay together.':state.queue.length<4?'A custom lineup needs four waiting players.':'Skip moves a player to the back for the next game without changing their game count. Skipping cancels a custom group.';
 $('lineup-error').textContent='';
+const results=state.results||[],shown=[...results].reverse().slice(0,allResults?results.length:5),more=$('results-more');$('results').hidden=!results.length;
+if(editing&&!results.some(r=>r.id===editing.id))editing=null;
+const recorded=results.filter(r=>r.winner).length;$('results-count').textContent=`${plural(results.length,'game')} finished, ${recorded} with a result`;
+$('results-list').replaceChildren(...shown.map(resultRow));more.hidden=results.length<=5;more.textContent=allResults?'Show the latest 5':`Show all ${results.length} games`;more.dataset.keep='results-more';more.onclick=()=>{allResults=!allResults;render();};
+if(keep){const again=document.querySelector(`[data-keep="${keep}"]`);if(again&&again!==document.activeElement){again.focus({preventScroll:true});if(caret)try{again.setSelectionRange(caret[0],caret[1]);}catch{}}}
 $('undo').disabled=!previous;
 lastCourtIds=courtIds;
 if(courtsChanged)reflowCourts(rects,Array.from(document.querySelectorAll('#courts .court')).filter(el=>!hadCourts.has(el.dataset.court)));else animate(before,places);rendered=true;
@@ -402,8 +507,11 @@ if(courtsChanged)reflowCourts(rects,Array.from(document.querySelectorAll('#court
 $('add-form').onsubmit=e=>{e.preventDefault();const input=$('nickname'),name=cleanName(input.value);if(!visibleName(name)){input.setCustomValidity('Enter a nickname.');input.reportValidity();return;}const same=state.players.find(p=>p.name.toLocaleLowerCase()===name.toLocaleLowerCase());if(same){input.setCustomValidity((state.left||[]).includes(same.id)?`${same.name} left earlier. Use Return in the player list to bring them back.`:'That nickname is already in the queue. Use a unique nickname.');input.reportValidity();return;}change(()=>{const id=globalThis.crypto?.randomUUID?.()||`${Date.now()}-${Math.random()}`;state.players.push({id,name,games:0});state.queue.push(id);},`${name} joined the queue.`);stat('player_added');input.value='';input.focus();};
 $('nickname').oninput=()=>$('nickname').setCustomValidity('');
 function play(courtId,rotate=true){const c=state.courts.find(c=>c.id===courtId);if(!c||(!c.current.length&&nextPlayers().length<4))return;
+// A half-entered or tied score stops the finish, so a wrong result is never saved by accident.
+const o=c.current.length?outcome(c):null,key='c-'+c.id;if(o?.error){resultNote(key,o.error);return;}resultNotes.delete(key);
+const won=o?.winner?(()=>{const n=c.current.map(id=>player(id).name),a=o.winner==='A';return `${n[a?0:2]} & ${n[a?1:3]} won${o.score?` ${Math.max(...o.score)}–${Math.min(...o.score)}`:''}. `;})():'';
 if(c.current.length)stat('game_finished');
-change(()=>{const leaving=c.current.filter(id=>window.pendingLeaves?.has(id));if(c.current.length){c.current.forEach(id=>player(id).games++);state.completed++;}if(leaving.length)state.left=[...(state.left||[]),...leaving];state.queue=nextOrder(c.current.filter(id=>!leaving.includes(id)),rotate);c.current=[];delete c.game;if(rotate&&nextPlayers().length===4){c.current=state.queue.splice(0,4);c.game=newId();if((state.lineup||[]).some(id=>c.current.includes(id)))state.lineup=[];}state.skipped=(state.skipped||[]).filter(id=>!state.queue.includes(id)&&!c.current.includes(id));},rotate?'Court updated. The queue is ready for the next available game.':'Game counted. Court is now available.');}
+change(()=>{const leaving=c.current.filter(id=>window.pendingLeaves?.has(id));if(c.current.length){c.current.forEach(id=>player(id).games++);state.completed++;state.results=[...(state.results||[]),{id:c.game||newId(),n:state.completed,court:c.id,ids:[...c.current],names:c.current.map(id=>player(id).name),score:o.score,winner:o.winner}].slice(-300);}delete c.score;delete c.winner;if(leaving.length)state.left=[...(state.left||[]),...leaving];state.queue=nextOrder(c.current.filter(id=>!leaving.includes(id)),rotate);c.current=[];delete c.game;if(rotate&&nextPlayers().length===4){c.current=state.queue.splice(0,4);c.game=newId();if((state.lineup||[]).some(id=>c.current.includes(id)))state.lineup=[];}state.skipped=(state.skipped||[]).filter(id=>!state.queue.includes(id)&&!c.current.includes(id));},won+(rotate?'Court updated. The queue is ready for the next available game.':'Game counted. Court is now available.'));}
 $('lineup-form').onsubmit=async e=>{e.preventDefault();const chosen=Array.from($('lineup-fields').querySelectorAll('select'),s=>s.value);if(chosen.length!==4||new Set(chosen).size!==4||chosen.some(id=>!state.queue.includes(id))){$('lineup-error').textContent='Choose four different waiting players.';return;}if(await window.approveCustomLineup(chosen))$('lineup-editor').open=false;};
 // Local-only approval. checkin.js replaces this with the shared-session version; keeping a default here means
 // the core queue still works if that optional script fails to load or a stale cached copy is served.
@@ -421,7 +529,7 @@ render();
 <script src="vendor/qrcode.js"></script>
 <script src="checkin-api.js?v=2026-11-10b"></script>
 <script src="checkin.js?v=2026-11-15a"></script>
-<script src="archives.js?v=2026-11-10i"></script>
+<script src="archives.js?v=2026-11-15a"></script>
 <script src="customize.js?v=2026-11-10i"></script>
 <script src="feedback.js?v=2026-11-11a"></script>
 <script src="announcement.js?v=2026-11-10l"></script>

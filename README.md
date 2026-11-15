@@ -20,6 +20,14 @@ Use **Remove** beside a waiting player to remove them from the list and queue af
 
 Data saves in localStorage in the current browser. Existing single-court sessions migrate to Court 01 with game counts and queue order preserved. Data does not sync across devices, browsers, or between the local file and hosted site. Clearing browser storage may erase the session. A warning appears when saving is unavailable.
 
+## Switching players and recording results
+
+While a game is in progress, tap a player on the court and then tap another player to switch them. This works within a court (to change teams or sides) and across courts. Tap the same player again, or press Escape, to cancel. If the switch changes who is on which team, players' guesses for that game start over. **Undo** reverses a switch.
+
+Each court in play has an optional **Winner and score** entry with one line per team. Enter both scores and the higher score is marked as the winner, or tap a team to record only who won. A half-entered or tied score stops **Finish game** with a message, so a wrong result is never saved. A score being typed is kept if the page reloads.
+
+Every finished game is listed under **Game results**, newest first, with its teams, score and winner. Use **Add result** or **Edit** to record or fix a result later; clearing the score and winner saves the game with no result. The player list shows wins and losses under each player's game count once a winner is recorded. Saved sessions keep the results and each player's wins and losses. Results stay on the organizer's device and are not shown on the player page. The list keeps the latest 300 games.
+
 ## Announcements
 
 Both pages show a dismissible announcement bar at the top (currently: tournament mode is coming soon). **Share your ideas** opens the Feedback form with the topic filled in, and **Dismiss** hides the bar in that browser. To post a different announcement, edit the text in `announcement.js` and change its `ID` so people who dismissed the old one see the new one; remember to bump the `?v=` on its script tags.
@@ -42,7 +50,7 @@ Open **Customize** and use **Sponsor banners** to add up to six banners, like ad
 
 ## Guess who wins
 
-While QR check-in is on, each game in progress shows **Who wins?** on the player page with a button for each team. Players who checked in from their phone get one guess per game and can change it until the game ends. Players in that game can't guess on it. On the organizer page, each court in play shows the number of guesses as a split bar under the court, with Team A on the left and Team B on the right like the drawing. Each new game starts with no guesses, and guesses close when the game is finished. Sideout does not record which team won, so guesses aren't scored. For a separate deployment, run `supabase/match-guesses.sql` after `branding.sql` and `player-leave.sql`.
+While QR check-in is on, each game in progress shows **Who wins?** on the player page with a button for each team. Players who checked in from their phone get one guess per game and can change it until the game ends. Players in that game can't guess on it. On the organizer page, each court in play shows the number of guesses as a split bar under the court, with Team A on the left and Team B on the right like the drawing. Each new game starts with no guesses, and guesses close when the game is finished. Guesses aren't scored, even when the organizer records the winner. If the organizer switches players between teams during a game, the guesses for that game start over. For a separate deployment, run `supabase/match-guesses.sql` after `branding.sql` and `player-leave.sql`.
 
 ## Leaving a session
 

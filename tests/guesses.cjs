@@ -53,6 +53,15 @@ await eve.locator('.pick',{hasText:'Cal & Dee'}).click();await eve.waitForFuncti
 await p.waitForFunction(()=>[...document.querySelectorAll('[data-court="1"] .guess-bar b')].map(b=>b.textContent).join()==='0,2',null,{timeout:15000});assert.equal(await label(p),'2 guesses on who wins');
 await eve.reload();await eve.locator('.pick.mine').waitFor({timeout:15000});assert.equal(await eve.locator('.pick.mine .pick-name').textContent(),'Cal & Dee','My guess survives a reload');
 
+// 3b. The organizer switches Bea and Cal mid-game: new teams, so guesses start over on the organizer page and on phones.
+// A score being typed on the organizer page travels with the court and must not upset the phones.
+await p.locator('[data-court="1"] .result .score').first().fill('3');
+await p.locator('.player-chip',{hasText:/^Bea$/}).click();await p.locator('.player-chip',{hasText:/^Cal$/}).click();
+await p.waitForFunction(()=>document.querySelector('[data-court="1"] .guess-label')?.textContent==='No guesses yet on who wins',null,{timeout:15000});
+await eve.waitForFunction(()=>[...document.querySelectorAll('.pick-name')].map(x=>x.textContent).join()==='Ali & Cal,Bea & Dee'&&!document.querySelector('.pick.mine'),null,{timeout:20000});
+await eve.locator('.pick',{hasText:'Bea & Dee'}).click();await p.waitForFunction(()=>document.querySelector('[data-court="1"] .guess-label')?.textContent==='1 guess on who wins',null,{timeout:15000});
+await p.locator('[data-court="1"] .result .score').first().fill('');
+
 // 4. A new game starts with no guesses, and the old game's guesses are closed.
 await p.getByRole('button',{name:'Finish game & rotate',exact:true}).click();assert.notEqual(await p.evaluate(()=>state.courts[0].game),firstGame);
 await p.waitForFunction(()=>document.querySelector('[data-court="1"] .guess-label')?.textContent==='No guesses yet on who wins',null,{timeout:15000});
