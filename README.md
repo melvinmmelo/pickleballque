@@ -33,6 +33,21 @@ Use **Remove** beside a waiting player to remove them from the list and queue af
 
 Data saves in localStorage in the current browser. Existing single-court sessions migrate to Court 01 with game counts and queue order preserved. Data does not sync across devices, browsers, or between the local file and hosted site. Clearing browser storage may erase the session. A warning appears when saving is unavailable.
 
+## Mix players
+
+In plain first-come order, the four who finish a game go to the back of the line together and come back together. With a player count that is a multiple of four, the same four play each other all session, with the same partners.
+
+Turn on **Mix players** on the Up next board to change that. The choice is remembered on that device and is off by default.
+
+- When players come back from a court, two of them may trade places with two of the four waiting just ahead, when that repeats fewer past matchups than first-come order.
+- Inside each foursome, teams are chosen for the fewest repeat partners, then the fewest repeat opponents.
+- It stays fair: games played stay within one of each other, a waiting player is moved back at most once before they play, and nobody passes a player who has played fewer games. A turn can come one game sooner or later than first-come order. With few players and one court, that can mean two players play twice in a row while two others wait one extra game.
+- The first round is always arrival order, since nobody has played yet.
+- A pending custom lineup or a skip keeps plain order for that return, and a custom group is never split or re-paired.
+- With one court, the board does not preview where the players on court will return, because that is decided when their game ends.
+
+Past matchups come from the results log, so mixing looks at games finished in the current session. In a simulated 12-player session on one court, first-come order produced 3 different foursomes in 25 games; mixing produced 25, with 7 to 8 different partners per player.
+
 ## Switching players and recording results
 
 While a game is in progress, tap a player on the court and then tap another player to switch them. This works within a court (to change teams or sides) and across courts. Tap the same player again, or press Escape, to cancel. If the switch changes who is on which team, players' guesses for that game start over. **Undo** reverses a switch.
