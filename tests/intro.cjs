@@ -2,7 +2,7 @@
 const {chromium}=require('playwright'),path=require('path'),url=require('url'),assert=require('node:assert/strict');
 const names=['Din','Dindi','Melo','Billie','Ana','Bo'];
 const seed=JSON.stringify({players:names.map((n,i)=>({id:String(i),name:n,games:0})),queue:['4','5'],courts:[{id:1,current:['0','1','2','3']},{id:2,current:[]}],completed:0});
-(async()=>{const b=await chromium.launch({channel:'chrome',headless:true}),errors=[],page=url.pathToFileURL(path.resolve('index.html')).href;
+(async()=>{const b=await chromium.launch({channel:'chrome',headless:true}),errors=[],page=url.pathToFileURL(path.resolve('app.html')).href;
 async function open(opts={}){const c=await b.newContext(opts),p=await c.newPage();p.on('pageerror',e=>errors.push(e.message));await p.addInitScript(s=>{if(!sessionStorage.getItem('seeded')){localStorage.setItem('sideout-queue-v1',s);sessionStorage.setItem('seeded','1');}},seed);await p.goto(page);return p;}
 
 // 1. Plays the construction stages, then leaves the normal court behind.

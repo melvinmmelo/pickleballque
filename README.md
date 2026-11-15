@@ -2,9 +2,11 @@
 
 A pickleball doubles queue with browser storage and support for multiple courts.
 
+The main address opens the landing page (`index.html`): a live court demo that builds itself and rotates players, how it works, what players see, club colors and sponsor banners on a gym-TV mockup, and what's coming. **Start a session** opens the organizer app at `app.html`. Returning organizers see **Continue your session** with their saved player and court counts, and anyone with QR check-in running is sent straight back to the app (add `?home` to the address to see the landing page anyway). The landing page has no tracking.
+
 Each court is drawn to real proportions, with players' names in their service boxes. The first open court shows the next four in place. When a game rotates, names move between the courts and the queue so you can see where everyone went. When the page loads, each court is built on screen: the court is painted, the lines are drawn, the net goes up, and the players walk on. A new court is built the same way when you add it. Removing a court packs it up (the net comes down and the paint wipes away), then the remaining courts slide into place. Buttons work during the intro, and tapping one skips straight to the finished courts. Motion uses GSAP (bundled in `vendor/gsap`) and is turned off when the device asks for reduced motion.
 
-Open `index.html` directly, or visit https://melvinmmelo.github.io/pickleballque/.
+Visit https://melvinmmelo.github.io/pickleballque/ for the landing page and select **Start a session**, or open `app.html` (the organizer app) directly.
 
 1. Add unique player nicknames.
 2. Use **Add court** for additional courts. All courts share one arrival-order queue.
@@ -62,7 +64,7 @@ Open **Custom lineup**, select four distinct waiting players (first two on Team 
 
 QR check-in is connected to Supabase on the hosted site. For a separate deployment, follow the [Supabase setup](supabase/SETUP.md). Use **Enable QR check-in** on the hosted site. Arriving players scan the QR and enter a nickname with no login. Keep the organizer page open: new arrivals are appended automatically, usually within five seconds. Close check-in when finished; each QR also expires after 12 hours. Local manual entry remains available without Supabase or internet.
 
-Development checks: run `npm ci && npm test` with Google Chrome installed. When you change a script or stylesheet, bump its `?v=` value in `index.html`, `player.html`, and `join.html` so browsers do not combine a new page with a stale cached script. Tests use a local PostgreSQL-compatible PGlite database and isolated browsers; no live Supabase account or production player data is used.
+Development checks: run `npm ci && npm test` with Google Chrome installed. When you change a script or stylesheet, bump its `?v=` value in `app.html`, `player.html`, `join.html`, and `index.html` so browsers do not combine a new page with a stale cached script. Tests use a local PostgreSQL-compatible PGlite database and isolated browsers; no live Supabase account or production player data is used.
 
 ## Save session history
 

@@ -1,6 +1,6 @@
 'use strict';
 // Organizer "Customize" panel: court color presets, custom colors, club/court logos, and sponsor banners.
-// Relies on index.html's brand, setBrand() and node(); does nothing if brand.js did not load.
+// Relies on app.html's brand, setBrand() and node(); does nothing if brand.js did not load.
 (()=>{
 const B=window.SideoutBrand,S=window.SideoutSponsors;if(!B||typeof setBrand!=='function')return;
 const SLOTS=[

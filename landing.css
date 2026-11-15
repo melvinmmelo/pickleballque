@@ -1,0 +1,186 @@
+/* Sideout landing page. Court plan identity: Archivo, apron green, court blue, ball yellow. */
+@font-face{font-family:Archivo;font-style:normal;font-weight:100 900;font-stretch:62% 125%;font-display:swap;src:url(vendor/fonts/archivo-latin-ext.woff2) format('woff2');unicode-range:U+0100-02BA,U+02BD-02C5,U+02C7-02CC,U+02CE-02D7,U+02DD-02FF,U+0304,U+0308,U+0329,U+1D00-1DBF,U+1E00-1E9F,U+1EF2-1EFF,U+2020,U+20A0-20AB,U+20AD-20C4,U+2113,U+2C60-2C7F,U+A720-A7FF}
+@font-face{font-family:Archivo;font-style:normal;font-weight:100 900;font-stretch:62% 125%;font-display:swap;src:url(vendor/fonts/archivo-latin.woff2) format('woff2');unicode-range:U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD}
+:root{--page:#E6ECEF;--ink:#0F2438;--muted:#56697A;--rule:#C6D2D9;--surface:#FFFFFF;--court:#2B5D8C;--kitchen:#3B74A6;--apron:#2E7553;--apron-deep:#245E44;--apron-text:#CFE6D9;--line:#FFFFFF;--ball:#DCF24A;
+  font-family:Archivo,ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif;color:var(--ink);background:var(--page);font-synthesis:none}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;font-size:17px;line-height:1.55}
+a{color:inherit}
+p{margin:0}
+.wrap{max-width:1200px;margin:0 auto;padding:0 24px}
+.sr-only{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap}
+:focus-visible{outline:3px solid var(--ball);outline-offset:3px}
+main :focus-visible{outline-color:var(--court)}
+.hero :focus-visible,.final :focus-visible,.soon :focus-visible{outline-color:var(--ball)}
+h1,h2,h3{margin:0;letter-spacing:-.02em}
+h2{font-stretch:112%;font-weight:850;font-size:clamp(30px,3.6vw,46px);line-height:1.05}
+h3{font-stretch:112%;font-weight:800;font-size:20px}
+
+/* Header: the brand bar, green like the court surround */
+.site{position:sticky;top:0;z-index:30;background:var(--apron);color:#fff;border-bottom:1px solid #ffffff1f}
+.site .wrap{display:flex;align-items:center;gap:22px;height:64px}
+.mark{font-stretch:125%;font-weight:850;font-size:24px;letter-spacing:-.02em;text-decoration:none;color:#fff}
+.site nav{display:flex;gap:20px;margin-left:auto}
+.site nav a{color:var(--apron-text);text-decoration:none;font-weight:600;font-size:15px}
+.site nav a:hover{color:#fff}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;border-radius:12px;padding:13px 20px;font:inherit;font-weight:750;text-decoration:none;border:0;cursor:pointer;line-height:1.2}
+.btn.ball{background:var(--ball);color:var(--ink)}
+.btn.ball:hover{filter:brightness(1.05)}
+.btn.line{background:transparent;color:#fff;box-shadow:inset 0 0 0 1.5px #ffffff66}
+.btn.line:hover{box-shadow:inset 0 0 0 1.5px #fff}
+.btn.small{padding:9px 14px;font-size:15px}
+.btn.ink{background:var(--ink);color:#fff}
+
+/* Hero */
+.hero{background:var(--apron);color:#fff;padding:56px 0 84px;overflow:hidden}
+.hero-grid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.08fr);gap:56px;align-items:center}
+.hero h1{font-stretch:125%;font-weight:900;font-size:clamp(44px,6.2vw,82px);line-height:.96;letter-spacing:-.03em}
+.lede{font-size:19px;color:var(--apron-text);max-width:32em;margin:22px 0 30px}
+.actions{display:flex;flex-wrap:wrap;gap:12px}
+.saved{margin-top:12px;font-size:14px;color:var(--apron-text);min-height:1.2em}
+.proof{list-style:none;margin:34px 0 0;padding:0;display:flex;flex-wrap:wrap;gap:8px 24px;font-size:15px;color:var(--apron-text)}
+.proof li{display:flex;align-items:center;gap:8px}
+.proof li::before{content:"";width:9px;height:9px;border-radius:50%;background:var(--ball)}
+
+/* Courts drawn to pickleball proportions (44 x 20 ft), shared by the hero, phone and TV */
+.surface{position:relative;aspect-ratio:44/20;background:var(--court);outline:2px solid var(--line);display:grid;grid-template-columns:15fr 7fr 7fr 15fr;grid-template-rows:1fr 1fr;transition:background-color .5s,outline-color .5s}
+.surface .kitchen{grid-row:1/3;background:var(--kitchen);transition:background-color .5s}
+.surface .kitchen.left{grid-column:2;border-left:2px solid var(--line);transform-origin:100% 50%}
+.surface .kitchen.right{grid-column:3;border-right:2px solid var(--line);transform-origin:0 50%}
+.surface::after{content:"";position:absolute;left:calc(50% - 2px);top:-8%;bottom:-8%;width:4px;background:var(--ink);border-radius:2px;transform:scaleY(var(--net,1));transform-origin:50% 100%}
+.surface .box{display:grid;place-items:center;padding:4px;min-width:0;text-align:center}
+.surface .box.top{grid-row:1;border-bottom:2px solid var(--line)}.surface .box.bottom{grid-row:2}
+.surface .box.a{grid-column:1}.surface .box.b{grid-column:4}
+.surface.building,.surface.building .box,.surface.building .kitchen{outline-color:transparent;border-color:transparent!important}
+.court-lines{position:absolute;inset:0;pointer-events:none;z-index:1}
+.court-lines .ln{position:absolute;background:var(--line)}
+.ln.top{left:-2px;right:-2px;top:-2px;height:2px;transform-origin:0 50%}.ln.right{top:-2px;bottom:-2px;right:-2px;width:2px;transform-origin:50% 0}
+.ln.bottom{left:-2px;right:-2px;bottom:-2px;height:2px;transform-origin:100% 50%}.ln.left{top:-2px;bottom:-2px;left:-2px;width:2px;transform-origin:50% 100%}
+.ln.kl{left:calc(100% * 15 / 44);top:0;bottom:0;width:2px;transform-origin:50% 0}.ln.kr{left:calc(100% * 29 / 44 - 2px);top:0;bottom:0;width:2px;transform-origin:50% 0}
+.ln.cl{left:0;width:calc(100% * 15 / 44);top:calc(50% - 2px);height:2px;transform-origin:0 50%}.ln.cr{left:calc(100% * 29 / 44);right:0;top:calc(50% - 2px);height:2px;transform-origin:100% 50%}
+
+/* Hero demo: a court and its On deck line */
+.demo{position:relative;background:var(--apron-deep);border-radius:24px;padding:20px;box-shadow:0 30px 60px #0b2a1e59, inset 0 0 0 1px #ffffff14}
+.demo-head{display:flex;align-items:baseline;gap:12px;margin-bottom:14px}
+.demo .num{font-stretch:125%;font-weight:900;font-size:48px;line-height:.85}
+.demo .state{color:var(--apron-text);font-size:15px}
+.demo .surface .name{font-weight:700;font-size:16px;padding:6px 11px;border-radius:9px}
+.name{position:relative;display:inline-block;white-space:nowrap}
+.demo-buttons{display:grid;grid-template-columns:1fr 1.3fr;gap:10px;margin-top:20px}
+.fake{display:grid;place-items:center;border-radius:11px;padding:12px 8px;font-weight:750;font-size:15px;text-align:center}
+.fake.only{box-shadow:inset 0 0 0 1.5px #9cc7b0;color:#fff}
+.fake.go{background:var(--ball);color:var(--ink)}
+.deck{margin-top:18px;background:#ffffff12;border-radius:16px;padding:12px 14px 14px}
+.deck-label{display:block;font-size:13px;color:var(--apron-text);margin-bottom:8px}
+.deck-names{display:flex;flex-wrap:wrap;gap:8px;min-height:36px}
+.deck-names .name{background:#fff;color:var(--ink);padding:6px 11px;border-radius:9px;font-weight:650;font-size:16px}
+.name.flying{background:var(--ball)!important;color:var(--ink)!important;border-radius:8px;box-shadow:0 0 0 4px var(--ball);z-index:5}
+.demo-wrap{position:relative}
+.demo-pause{position:absolute;right:16px;top:22px;background:none;border:0;color:var(--apron-text);font:inherit;font-size:13px;font-weight:650;text-decoration:underline;text-underline-offset:3px;cursor:pointer;padding:4px}
+
+/* Sections on the light page */
+section.band{padding:96px 0}
+.section-head{max-width:640px}
+.section-head p{color:var(--muted);font-size:18px;margin-top:14px}
+.steps{list-style:none;margin:48px 0 0;padding:0;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:32px;counter-reset:step}
+.steps li{border-top:3px solid var(--court);padding-top:18px}
+.steps .step-num{display:block;font-stretch:125%;font-weight:900;font-size:56px;line-height:.9;color:var(--court);margin-bottom:12px}
+.steps p{color:var(--muted);margin-top:8px}
+
+/* Players: a phone running the player page */
+.players{background:var(--surface)}
+.split{display:grid;grid-template-columns:minmax(0,.9fr) minmax(0,1.1fr);gap:72px;align-items:center}
+.phone{width:min(320px,100%);margin:0 auto;aspect-ratio:9/18;background:var(--ink);border-radius:44px;padding:12px;box-shadow:0 40px 70px #0f243840}
+.phone-screen{height:100%;background:var(--page);border-radius:34px;overflow:hidden;padding:22px 16px 16px;display:flex;flex-direction:column;gap:12px}
+.ph-top{display:flex;justify-content:space-between;align-items:center;font-size:12px;color:var(--muted)}
+.ph-top b{font-stretch:125%;font-weight:850;font-size:17px;color:var(--ink)}
+.ph-card{background:var(--surface);border-radius:16px;padding:14px}
+.ph-tag{display:inline-block;background:var(--ball);color:var(--ink);font-size:11px;font-weight:700;padding:3px 9px;border-radius:999px}
+.ph-count{font-stretch:125%;font-weight:900;font-size:34px;line-height:1.05;color:var(--court);margin-top:10px;min-height:36px;display:block}
+.ph-title{font-stretch:112%;font-weight:800;font-size:18px;margin-top:4px}
+.ph-note{font-size:13px;color:var(--muted);margin-top:4px;min-height:2.6em}
+.ph-court{background:var(--apron);border-radius:14px;padding:10px}
+.ph-court-head{color:#fff;font-size:11px;margin-bottom:8px;display:flex;gap:8px;align-items:baseline}
+.ph-court-head b{font-stretch:125%;font-weight:900;font-size:20px}
+.ph-court .name{color:#fff;font-size:11px;font-weight:650;padding:1px 5px;border-radius:5px}
+.ph-court .name.me{background:var(--ball);color:var(--ink)}
+.ph-queue{background:var(--surface);border-radius:16px;padding:10px 14px;font-size:12px}
+.ph-queue b{display:block;font-size:13px;margin-bottom:4px}
+.ph-queue ol{list-style:none;margin:0;padding:0}
+.ph-queue li{display:flex;justify-content:space-between;padding:5px 0;border-top:1px solid #edf0e9;color:var(--muted)}
+.ph-queue li.me{color:var(--ink);font-weight:700}
+.ph-queue li.me span:first-child::after{content:' (you)';font-weight:500;color:var(--muted)}
+.checks{list-style:none;padding:0;margin:28px 0 0;display:grid;gap:16px}
+.checks li{display:grid;grid-template-columns:28px 1fr;gap:12px;align-items:start}
+.checks li::before{content:"";width:22px;height:22px;margin-top:2px;border-radius:50%;background:var(--ball) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M6 12.5l4 4 8-9' fill='none' stroke='%230F2438' stroke-width='2.6' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") center/16px no-repeat}
+.checks b{display:block}
+.checks span{color:var(--muted)}
+
+/* Clubs: the gym TV mockup with presets and sponsor banners */
+.tv-wrap{display:grid;gap:18px}
+.tv{background:var(--ink);border-radius:20px;padding:12px;box-shadow:0 40px 70px #0f243833}
+.tv-screen{background:var(--page);border-radius:10px;padding:14px;display:grid;gap:12px}
+.tv-top{display:flex;align-items:center;gap:10px}
+.tv-logo{width:34px;height:34px;border-radius:50%;background:#1b2a4a;color:#f6c445;display:grid;place-items:center;font-weight:900;font-size:12px;box-shadow:inset 0 0 0 3px #f6c445}
+.tv-top b{font-stretch:125%;font-weight:850;font-size:18px}
+.tv-top span{margin-left:auto;font-size:11px;color:var(--muted)}
+.tv-ads{position:relative;height:56px;border-radius:10px;overflow:hidden;background:#fff}
+.tv-ad{position:absolute;inset:0;display:flex;align-items:center;gap:12px;padding:0 16px;opacity:0;transition:opacity .7s}
+.tv-ad.on{opacity:1}
+.tv-ad i{width:30px;height:30px;border-radius:50%;flex-shrink:0;display:grid;place-items:center;font-style:normal;font-weight:900;font-size:13px}
+.tv-ad b{font-stretch:112%;font-weight:850;font-size:17px}
+.tv-ad small{font-size:12px;opacity:.85}
+.tv-courts{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.tv-court{background:var(--apron);border-radius:10px;padding:8px;transition:background-color .5s}
+.tv-court .name{color:#fff;font-size:10px;font-weight:650}
+.tv-court-head{color:#fff;font-size:10px;margin-bottom:6px;display:flex;gap:6px;align-items:baseline}
+.tv-court-head b{font-stretch:125%;font-weight:900;font-size:16px}
+.tv-stand{width:22%;height:14px;margin:0 auto;background:#0b1a2b;border-radius:0 0 8px 8px}
+.swatches{display:flex;flex-wrap:wrap;gap:10px}
+.swatch{display:grid;justify-items:center;gap:6px;padding:10px 8px;border:2px solid var(--rule);border-radius:12px;background:var(--surface);cursor:pointer;font:inherit;font-size:13px;font-weight:650;color:var(--ink);min-width:96px}
+.swatch[aria-pressed="true"]{border-color:var(--ink)}
+.swatch .mini{width:64px;height:34px;border-radius:6px;background:var(--a);display:grid;place-items:center}
+.swatch .mini::before{content:"";width:50px;height:22px;background:linear-gradient(90deg,var(--c) 0 34%,var(--k) 34% 66%,var(--c) 66%);outline:1.5px solid #fff}
+
+/* Everything else: a quiet list, not a card grid */
+.more{list-style:none;margin:44px 0 0;padding:0;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:34px 40px}
+.more li{padding-top:16px;border-top:1px solid var(--rule)}
+.more p{color:var(--muted);margin-top:6px;font-size:16px}
+
+/* Tournament mode coming */
+.soon{background:var(--ink);color:#fff;padding:80px 0}
+.soon .wrap{display:grid;grid-template-columns:minmax(0,1.2fr) minmax(0,1fr);gap:40px;align-items:center}
+.soon-tag{display:inline-block;background:var(--ball);color:var(--ink);font-size:13px;font-weight:750;padding:4px 12px;border-radius:999px;margin-bottom:16px}
+.soon p{color:#c9d6e2;margin-top:14px;font-size:18px}
+.bracket{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;align-items:center}
+.bracket div{display:grid;gap:10px}
+.bracket span{display:block;background:#ffffff14;border-radius:8px;padding:8px 10px;font-size:13px;color:#dfe8ef}
+.bracket .win{background:var(--ball);color:var(--ink);font-weight:750}
+
+/* Final call to action and footer */
+.final{background:var(--apron);color:#fff;padding:84px 0;text-align:left}
+.final h2{font-stretch:125%;font-weight:900;font-size:clamp(34px,4.6vw,60px);max-width:14em}
+.final p{color:var(--apron-text);margin:16px 0 28px;font-size:18px;max-width:34em}
+footer{padding:28px 0 40px;color:var(--muted);font-size:14px}
+footer .wrap{display:flex;flex-wrap:wrap;gap:10px 24px;align-items:baseline}
+footer .mark{color:var(--ink);font-size:18px}
+footer a{color:var(--ink);font-weight:600}
+
+@media (max-width:900px){
+  .hero-grid,.split,.soon .wrap{grid-template-columns:1fr;gap:40px}
+  .site nav{display:none}
+  .site .btn{margin-left:auto}
+  .steps,.more{grid-template-columns:1fr;gap:26px}
+  section.band{padding:72px 0}
+  .players .split>div:first-child{order:2}
+}
+@media (max-width:480px){
+  .wrap{padding:0 16px}
+  .demo{padding:14px;border-radius:18px}
+  .demo .num{font-size:38px}
+  .fake{font-size:13px;padding:11px 6px}
+  .actions .btn{flex:1 1 100%}
+  .tv-courts{grid-template-columns:1fr}
+}
+@media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}.tv-ad{transition:none}.surface,.surface .kitchen,.tv-court{transition:none}}

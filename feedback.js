@@ -40,4 +40,6 @@ form.onsubmit=async e=>{e.preventDefault();const message=$('feedback-message').v
 function finish(){const bug=kind()==='bug';form.reset();showKind();showStars();say(bug?'Thanks! Your bug report was sent.':'Thanks! Your feedback was sent.');}
 $('feedback-close').onclick=()=>dialog.close();
 opener.onclick=()=>{say('');dialog.showModal();};
+// Links such as app.html#tournament-ideas (from the landing page) open the form with the topic filled in.
+if(page==='organizer'&&location.hash==='#tournament-ideas'){history.replaceState(null,'',location.pathname+location.search);setTimeout(()=>{opener.click();const m=$('feedback-message');m.value='Tournament mode idea: ';m.focus();m.setSelectionRange(m.value.length,m.value.length);},50);}
 })();
