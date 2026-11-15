@@ -31,7 +31,7 @@ async function page(c,url=base){const p=await c.newPage();p.on('pageerror',e=>er
 // 2. Organizer page: rating + message, then a bug report with counts (never names) in the context.
 const p=await page(await context(db));
 for(const n of ['Alicia','Bernardo','Celestine','Dominga','Evangeline']){await p.locator('#nickname').fill(n);await p.locator('#add-form button').click();}
-await p.getByRole('button',{name:'Feedback',exact:true}).click();await p.locator('#feedback-dialog').waitFor({state:'visible'});
+await p.locator('#more').click();await p.getByRole('button',{name:'Feedback',exact:true}).click();await p.locator('#feedback-dialog').waitFor({state:'visible'});
 await p.getByRole('button',{name:'Send feedback',exact:true}).click();assert.equal(await p.locator('#feedback-status').textContent(),'Choose a star rating or write a message.');
 await p.locator('.fb-stars label').nth(3).click();assert.equal(await p.locator('#feedback-rating-text').textContent(),'Very good');assert.equal(await p.locator('.fb-stars label.on').count(),4);
 await p.locator('#feedback-message').fill('The court drawing is great on our TV.');await p.locator('#feedback-contact').fill('club@example.com');
@@ -63,7 +63,7 @@ await a.getByRole('button',{name:'All',exact:true}).click();assert.match(await a
 await a.setViewportSize({width:390,height:844});assert(await a.evaluate(()=>document.documentElement.scrollWidth<=innerWidth));
 
 // 5. A database without the feedback migration: the form explains, nothing breaks.
-const o=await page(await context(oldDb));await o.getByRole('button',{name:'Feedback',exact:true}).click();await o.locator('.fb-stars label').nth(2).click();await o.getByRole('button',{name:'Send feedback',exact:true}).click();
+const o=await page(await context(oldDb));await o.locator('#more').click();await o.getByRole('button',{name:'Feedback',exact:true}).click();await o.locator('.fb-stars label').nth(2).click();await o.getByRole('button',{name:'Send feedback',exact:true}).click();
 await o.getByText('Feedback isn’t available yet. Please try again later.').waitFor();
 
 assert.deepEqual(errors,[]);await browser.close();await db.close();await oldDb.close();await new Promise(r=>server.close(r));

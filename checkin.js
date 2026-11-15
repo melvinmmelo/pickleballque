@@ -1,18 +1,42 @@
 'use strict';
 (()=>{
-const panel=document.createElement('section');panel.className='card';panel.id='checkin';
-panel.innerHTML='<div class="card-head"><h2>QR check-in</h2><button id="share-start" class="dark">Enable QR check-in</button></div><p id="share-message" role="status" class="helper"></p><div id="share-details" hidden><div class="share-grid"><div id="share-qr"></div><div><label for="share-link">Player link</label><input id="share-link" readonly><div class="share-actions"><button id="share-copy" class="dark">Copy link</button><a id="share-player" target="_blank" rel="noopener">Open player page</a><button id="share-stop" class="quiet danger">Close check-in</button></div><p class="helper">Players who scan join the queue within about 5 seconds while this page stays open. The QR expires after 12 hours. Anyone with the link can see nicknames, game counts and queue positions, and can ask for a custom lineup.</p></div></div></div>';
-// The QR panel sits below the queue; lineup requests appear above it, only while one is waiting.
-document.querySelector('.layout').after(panel);const requestsPanel=node('section','card requests');requestsPanel.innerHTML='<h2>Player lineup requests</h2><p class="helper">Approve to queue the selected four last. Finish or cancel any existing custom group first.</p><div id="player-requests"></div>';document.querySelector('.layout').before(requestsPanel);requestsPanel.hidden=true;
+const panel=document.createElement('section');panel.id='checkin';
+panel.innerHTML='<h3>QR check-in</h3><p id="share-message" role="status" class="helper"></p><button id="share-start" class="dark" type="button">Show a QR code to scan</button><div id="share-details" hidden><label for="share-link">Player link</label><input id="share-link" readonly><div class="share-actions"><button id="share-copy" class="dark">Copy link</button><a id="share-player" target="_blank" rel="noopener">Open player page</a><button id="qr-toggle" class="quiet" type="button">Hide QR code</button><button id="share-stop" class="quiet danger">Close check-in</button></div><p class="helper">Players who scan join the queue within about 5 seconds while this page stays open. The QR expires after 12 hours. Anyone with the link can see nicknames, game counts and queue positions, and can ask for a custom lineup.</p></div>';
+// The QR panel is one of the two ways in, beside "Add by name". Lineup requests appear above the courts, only while one is waiting.
+$('qr-slot').append(panel);
+// The QR code itself floats in the bottom right corner while check-in is on, so it can be scanned from any part of the page.
+// Hide tucks it into a small button; the choice is remembered on this device.
+const float=node('aside','qr-float');float.id='qr-float';float.setAttribute('aria-label','QR code to join this session');float.hidden=true;
+float.innerHTML='<div class="qr-card" id="qr-card"><div id="share-qr"></div><p>Scan to join</p><div class="qr-acts"><button id="qr-size" class="quiet" type="button">Enlarge</button><button id="qr-hide" class="quiet" type="button">Hide</button></div></div><button id="qr-show" class="dark" type="button" hidden>Show QR</button>';
+document.body.append(float);
+// Shown by default on larger screens. On a phone it would cover the court buttons, so it starts as a small Show QR button there.
+const QR_HIDDEN='sideout-qr-hidden';let qrHidden=matchMedia('(max-width:900px)').matches;try{const saved=localStorage.getItem(QR_HIDDEN);if(saved==='1'||saved==='0')qrHidden=saved==='1';}catch{}
+// The Up next board makes room for the floating code (fitRail in app.html) whenever the code changes size.
+const qrRoom=()=>{if(typeof fitRail==='function')fitRail();};if(window.ResizeObserver)new ResizeObserver(qrRoom).observe(float);
+function showQr(){float.hidden=!state.checkin;$('qr-card').hidden=qrHidden;$('qr-show').hidden=!qrHidden;$('qr-toggle').textContent=qrHidden?'Show QR code':'Hide QR code';qrRoom();}
+function setQrHidden(v){qrHidden=v;try{localStorage.setItem(QR_HIDDEN,v?'1':'0');}catch{}showQr();}
+$('qr-hide').onclick=()=>{setQrHidden(true);$('qr-show').focus();};$('qr-show').onclick=()=>{setQrHidden(false);$('qr-hide').focus();};$('qr-toggle').onclick=()=>setQrHidden(!qrHidden);
+$('qr-size').onclick=()=>{const big=float.classList.toggle('big');$('qr-size').textContent=big?'Shrink':'Enlarge';};
+const requestsPanel=node('section','card requests');requestsPanel.innerHTML='<h2>Player lineup requests</h2><p class="helper">Approve to queue the selected four last. Finish or cancel any existing custom group first.</p><div id="player-requests"></div>';$('alerts').append(requestsPanel);requestsPanel.hidden=true;
+// Players who left or rejoined from their phone are noted above the courts until the organizer acknowledges them.
+const notices=[];
+function note(id,kind){for(let i=notices.length-1;i>=0;i--)if(notices[i].id===id)notices.splice(i,1);notices.push({id,kind});if(notices.length>6)notices.shift();}
+function showNotices(){for(const el of document.querySelectorAll('#alerts .notice-row'))el.remove();
+for(const n of [...notices]){const p=player(n.id),drop=()=>{const i=notices.indexOf(n);if(i>=0)notices.splice(i,1);showNotices();};if(!p||!state.checkin||(n.kind==='left'&&!(state.left||[]).includes(n.id))){const i=notices.indexOf(n);if(i>=0)notices.splice(i,1);continue;}
+const row=node('div','alert notice-row'),what=node('p','what'),acts=node('div','acts'),ok=node('button','outline','OK');
+what.append(node('b','',n.kind==='left'?`${p.name} left the session`:`${p.name} rejoined`),n.kind==='left'?' from their phone. Games played still count.':' from their phone and is at the end of the queue.');
+if(n.kind==='left'){const back=node('button','outline','Return to queue');back.type='button';back.setAttribute('aria-label',`Return to queue: ${p.name}`);back.onclick=()=>{const i=notices.indexOf(n);if(i>=0)notices.splice(i,1);change(()=>{state.left=state.left.filter(x=>x!==n.id);state.queue.push(n.id);},`${p.name} is back in the queue.`);};acts.append(back);}
+ok.type='button';ok.setAttribute('aria-label',`OK: ${p.name}`);ok.onclick=drop;acts.append(ok);row.append(what,acts);$('alerts').append(row);}}
+window.showNotices=showNotices;
 const message=text=>$('share-message').textContent=text;
 // Background updates go through softRender so the page-load intro can finish; older pages without it just render.
 const paint=()=>typeof softRender==='function'?softRender():render();
 // One network task at a time. A click waits for an in-flight sync instead of being silently dropped.
 let waiting=0,lock=Promise.resolve();
 function exclusive(task){waiting++;const run=lock.then(()=>task()).finally(()=>{waiting--;});lock=run.catch(()=>{});return run;}
-function show(){const shared=state.checkin;if(!shared)requestsPanel.hidden=true;$('share-start').hidden=!!shared;$('share-details').hidden=!shared;$('share-start').disabled=!CheckinAPI.configured();if(!shared){message(CheckinAPI.configured()?'Enable when you want players to scan and join. Manual entry always works.':'QR check-in needs the one-time Supabase connection. Manual entry is ready to use.');return;}
+function show(){const shared=state.checkin;showQr();if(!shared)requestsPanel.hidden=true;$('share-start').hidden=!!shared;$('share-details').hidden=!shared;$('share-start').disabled=!CheckinAPI.configured();if(!shared){message(CheckinAPI.configured()?'Players scan it and join from their phones. No account needed.':'QR check-in needs the one-time Supabase connection. Manual entry is ready to use.');return;}
 const url=new URL('player.html',location.href);url.hash=shared.id;$('share-link').value=url.href;$('share-player').href=url.href;
-const qr=qrcode(0,'M');qr.addData(url.href);qr.make();$('share-qr').innerHTML=qr.createSvgTag({cellSize:5,margin:20,scalable:true});const svg=$('share-qr').firstElementChild;svg.style.width='240px';svg.style.maxWidth='100%';svg.setAttribute('aria-label','Scan to join this session');svg.setAttribute('role','img');
+const qr=qrcode(0,'M');qr.addData(url.href);qr.make();$('share-qr').innerHTML=qr.createSvgTag({cellSize:5,margin:20,scalable:true});const svg=$('share-qr').firstElementChild;svg.style.width='100%';svg.setAttribute('aria-label','Scan to join this session');svg.setAttribute('role','img');
 message('Check-in enabled. Waiting for arrivals.');}
 $('share-start').onclick=()=>{if($('share-start').disabled||state.checkin)return;if(location.protocol==='file:'){message('Open the GitHub Pages website to enable QR check-in. A local file link cannot be opened on other phones.');return;}
 $('share-start').disabled=true;return exclusive(async()=>{if(state.checkin)return;
@@ -33,14 +57,14 @@ const counts=result.guesses&&typeof result.guesses==='object'?result.guesses:nul
 const departed=[];shared.leaves=shared.leaves||{};pendingLeaves.clear();
 for(const arrival of result.arrivals){const id=arrival.id,count=Number(arrival.leaves)||0;if(count<=(shared.leaves[id]||0))continue;
 if(state.courts.some(c=>c.current.includes(id))){pendingLeaves.add(id);continue;}
-shared.leaves[id]=count;changed=true;if(state.queue.includes(id)){state.queue=state.queue.filter(x=>x!==id);state.left=[...(state.left||[]),id];if((state.lineup||[]).includes(id))state.lineup=[];state.skipped=(state.skipped||[]).filter(x=>x!==id);departed.push(player(id).name);}}
+shared.leaves[id]=count;changed=true;if(state.queue.includes(id)){state.queue=state.queue.filter(x=>x!==id);state.left=[...(state.left||[]),id];if((state.lineup||[]).includes(id))state.lineup=[];state.skipped=(state.skipped||[]).filter(x=>x!==id);departed.push(player(id).name);}if((state.left||[]).includes(id))note(id,'left');}
 // Players who left and tapped Rejoin on their phone go to the end of the queue, keeping their games.
 const returned=[];shared.rejoins=shared.rejoins||{};
 for(const arrival of result.arrivals){const id=arrival.id,count=Number(arrival.rejoins)||0;if(count<=(shared.rejoins[id]||0))continue;
-shared.rejoins[id]=count;changed=true;if((state.left||[]).includes(id)){state.left=state.left.filter(x=>x!==id);state.queue.push(id);returned.push(player(id).name);}}
+shared.rejoins[id]=count;changed=true;if((state.left||[]).includes(id)){state.left=state.left.filter(x=>x!==id);state.queue.push(id);returned.push(player(id).name);note(id,'back');}}
 const notes=[departed.length?departed.join(', ')+' left the session.':'',returned.length?returned.join(', ')+(returned.length===1?' is':' are')+' back in the queue.':''].filter(Boolean).join(' ');
 if(notes)$('announcement').textContent=notes;
-if(changed){previous=null;persist();paint();}else if(changedView)paint();
+if(changed){previous=null;persist();paint();}else if(changedView)paint();showNotices();
 await publish(shared);await pushBrand(shared);await pushSponsors(shared);await loadRequests(shared,result.closed);
 message((result.closed?'This QR is closed or expired. Close check-in here to enable a new QR.':'Check-in is on. Arrivals are up to date.')+(notes?' '+notes:'')+(brandNote?' '+brandNote:''));return true;
 }catch(e){message(e.message+' Manual entry still works.');return false;}}
@@ -76,7 +100,7 @@ $('share-stop').onclick=()=>{if($('share-stop').disabled||!state.checkin)return;
 try{await CheckinAPI.call('close',{p_session:shared.id,p_owner:shared.owner});const received=await sync();if(received&&state.checkin===shared){delete state.checkin;guessCounts=null;previous=null;persist();render();show();}}
 catch(e){message(e.message+' Check-in has not been closed.');}}).finally(()=>{$('share-stop').disabled=false;});};
 $('share-copy').onclick=async()=>{try{await navigator.clipboard.writeText($('share-link').value);message('Join link copied.');}catch{$('share-link').select();message('Select and copy the join link above.');}};
-const reset=$('reset').onclick;$('reset').onclick=()=>{if(state.checkin){message('Close QR check-in before resetting this session.');panel.scrollIntoView({behavior:'smooth'});return;}reset();};
+const reset=$('reset').onclick;$('reset').onclick=()=>{if(state.checkin){message('Close QR check-in before resetting this session.');if(typeof showTab==='function')showTab('tab-players');panel.scrollIntoView({behavior:'smooth'});return;}reset();};
 window.addEventListener('storage',()=>{show();});
 show();poll();setInterval(poll,5000);document.addEventListener('visibilitychange',()=>{if(!document.hidden)poll();});
 })();

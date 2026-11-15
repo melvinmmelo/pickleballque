@@ -8,13 +8,26 @@ Each court is drawn to real proportions, with players' names in their service bo
 
 Visit https://melvinmmelo.github.io/pickleballque/ for the landing page and select **Start a session**, or open `app.html` (the organizer app) directly.
 
-1. Add unique player nicknames.
-2. Use **Add court** for additional courts. All courts share one arrival-order queue.
-3. **Start game** assigns the first four waiting players to that court.
-4. **Finish game & rotate** counts one game for each player on that court, returns them to the queue, and starts the next four. Other courts remain unchanged.
-5. **Finish game only** counts the game and returns players without starting another game. Empty extra courts can be removed.
+A new session opens on **Start your session**, three steps that stay until the first game starts:
 
-**On deck** shows the next four waiting players for whichever court becomes available, followed by the game after. With a single court, it also previews returning players if needed. **Skip** moves an upcoming player to the back without changing game counts; at least five available players are needed. New arrivals join at the back with zero actual games played.
+1. **Get players in.** Add unique nicknames by name, or use **Show a QR code to scan** so players add themselves.
+2. **Set your courts.** Use **Add court** for additional courts. All courts share one arrival-order queue.
+3. **Start the first game.** The button unlocks at four players and starts Court 1.
+
+After that the page is laid out for running the session:
+
+- **Top bar:** games played, players, **Undo**, and **More** (Customize, Feedback, usage stats, Reset session).
+- **Needs attention:** lineup requests and notes about players who left or rejoined from their phone appear above the courts, with the buttons to handle them.
+- **Courts** on the left and **Up next** on the right. Up next stays in view while the page scrolls. On a phone it is pinned to the bottom of the screen with the next four names, and **Show queue** opens the rest.
+- **Tabs** below: **Players** (add by name, QR check-in, the player list), **Results**, and **Saved sessions**.
+
+On each court:
+
+- **Start game** assigns the first four waiting players to that court.
+- **Finish game & rotate** counts one game for each player on that court, returns them to the queue, and starts the next four. Other courts remain unchanged.
+- **Finish game only** counts the game and returns players without starting another game. Empty extra courts can be removed.
+
+**Up next** shows the next four waiting players for whichever court becomes available, followed by the game after. With a single court, it also previews returning players if needed. **Skip** moves an upcoming player to the back without changing game counts; at least five available players are needed. New arrivals join at the back with zero actual games played.
 
 Use **Remove** beside a waiting player to remove them from the list and queue after confirmation. For an on-court player, first use **Finish game only**. Removal can be undone. **Undo** reverses one change until reload. **Reset session** clears the players, counts, and courts, leaving one empty court.
 
@@ -24,9 +37,9 @@ Data saves in localStorage in the current browser. Existing single-court session
 
 While a game is in progress, tap a player on the court and then tap another player to switch them. This works within a court (to change teams or sides) and across courts. Tap the same player again, or press Escape, to cancel. If the switch changes who is on which team, players' guesses for that game start over. **Undo** reverses a switch.
 
-Each court in play has an optional **Winner and score** entry with one line per team. Enter both scores and the higher score is marked as the winner, or tap a team to record only who won. A half-entered or tied score stops **Finish game** with a message, so a wrong result is never saved. A score being typed is kept if the page reloads.
+Each court in play has **Add score**, which opens an optional winner and score entry with one line per team (**Clear score** removes what was entered). Enter both scores and the higher score is marked as the winner, or tap a team to record only who won. A half-entered or tied score stops **Finish game** with a message, so a wrong result is never saved. A score being typed is kept if the page reloads.
 
-Every finished game is listed under **Game results**, newest first, with its teams, score and winner. Use **Add result** or **Edit** to record or fix a result later; clearing the score and winner saves the game with no result. The player list shows wins and losses under each player's game count once a winner is recorded. Saved sessions keep the results and each player's wins and losses. Results stay on the organizer's device and are not shown on the player page. The list keeps the latest 300 games.
+Every finished game is listed in the **Results** tab, newest first, with its teams, score and winner. Use **Add result** or **Edit** to record or fix a result later; clearing the score and winner saves the game with no result. The player list shows wins and losses under each player's game count once a winner is recorded. Saved sessions keep the results and each player's wins and losses. Results stay on the organizer's device and are not shown on the player page. The list keeps the latest 300 games.
 
 ## Announcements
 
@@ -34,19 +47,19 @@ Both pages show a dismissible announcement bar at the top (currently: tournament
 
 ## Feedback, bug reports, and ratings
 
-Both pages have a **Feedback** button. Choose **Feedback** to give a 1–5 star rating and/or a message, or **Report a bug** to describe what went wrong (at least 10 characters). An email or phone for a reply is optional. To help fix problems, each submission includes the page, app version, browser, and screen size, plus on the organizer page the number of courts, players, and waiting players and whether QR check-in was on. Player names are never sent. A hidden field catches simple spam bots, and the server limits how many reports arrive per hour.
+Both pages have a **Feedback** button (under **More** on the organizer page). Choose **Feedback** to give a 1–5 star rating and/or a message, or **Report a bug** to describe what went wrong (at least 10 characters). An email or phone for a reply is optional. To help fix problems, each submission includes the page, app version, browser, and screen size, plus on the organizer page the number of courts, players, and waiting players and whether QR check-in was on. Player names are never sent. A hidden field catches simple spam bots, and the server limits how many reports arrive per hour.
 
 Submissions appear on the developer dashboard (`analytics.html`) with the average rating, a star breakdown, filters for open items, bugs, and feedback, and **Mark done** / **Reopen**. For a separate deployment, run `supabase/feedback.sql` after `analytics.sql`.
 
 ## Anonymous usage stats and the developer dashboard
 
-The organizer and player pages send anonymous usage stats to Supabase: page visits, how long the page was on screen, and app actions such as games finished, QR sessions started, players added, check-ins, guesses, customizations by type, and sponsor banners added or removed. A random ID saved in each browser counts unique users. No names, nicknames, session contents, or IP addresses are sent. Anyone can turn stats off with **Turn off anonymous usage stats** at the bottom of either page, which also deletes the random ID from that browser. Browsers that send Do Not Track or Global Privacy Control are never counted, search-engine crawlers and automated browsers are skipped, and nothing is sent from local files or localhost previews. Events older than 400 days are deleted.
+The organizer and player pages send anonymous usage stats to Supabase: page visits, how long the page was on screen, and app actions such as games finished, QR sessions started, players added, check-ins, guesses, customizations by type, and sponsor banners added or removed. A random ID saved in each browser counts unique users. No names, nicknames, session contents, or IP addresses are sent. Anyone can turn stats off with **Turn off anonymous usage stats** (under **More** on the organizer page, at the bottom of the player page), which also deletes the random ID from that browser. Browsers that send Do Not Track or Global Privacy Control are never counted, search-engine crawlers and automated browsers are skipped, and nothing is sent from local files or localhost previews. Events older than 400 days are deleted.
 
 `analytics.html` is the developer dashboard: users, visits, average and total time in use, daily charts, customizations by type, app actions, and what is live right now. It is not linked from the app and asks for the developer key before showing anything. The key lives only in `~/.config/sideout/analytics-key` on the developer's computer and in the browser where it was entered; the database stores only its SHA-256 hash. For a separate deployment, run `supabase/analytics.sql` after `sponsors.sql` and store the hash of your own key as described in `supabase/SETUP.md`.
 
 ## Sponsor banners
 
-Open **Customize** and use **Sponsor banners** to add up to six banners, like ads during a broadcast. Each banner needs a sponsor name (also read aloud by screen readers) and can have an https link. Wide images work best, about 4 to 1 (for example 1200 × 300); they are resized in the browser and stored as small images. Banners take turns at the top of the page every 8 seconds with a crossfade. Dots show a specific banner, **Pause** stops the rotation, and hovering also holds it. While QR check-in is on, players see the same banners at the top of the player page, downloaded once and again only after a change. **Reset colors and logos** keeps the banners. For a separate deployment, run `supabase/sponsors.sql` after `match-guesses.sql`.
+Open **More**, then **Customize**, and use **Sponsor banners** to add up to six banners, like ads during a broadcast. Each banner needs a sponsor name (also read aloud by screen readers) and can have an https link. Wide images work best, about 4 to 1 (for example 1200 × 300); they are resized in the browser and stored as small images. Banners take turns at the top of the page every 8 seconds with a crossfade. Dots show a specific banner, **Pause** stops the rotation, and hovering also holds it. While QR check-in is on, players see the same banners at the top of the player page, downloaded once and again only after a change. **Reset colors and logos** keeps the banners. For a separate deployment, run `supabase/sponsors.sql` after `match-guesses.sql`.
 
 ## Guess who wins
 
@@ -60,7 +73,7 @@ A player who left by mistake can tap **Rejoin the queue as** *their nickname* on
 
 ## Club colors and logos
 
-Use **Customize** to choose a court color preset (Classic, Park green, Pro purple, Red clay, Night session) or set custom court, kitchen, surround, and button colors. A warning appears if a choice would make names or buttons hard to read. Upload a **club logo** for the top of the page and a **court logo** that appears on every court. Logos are resized in the browser and stored as small images. Branding is saved in this browser, separately from the session, so **Reset session** and **Undo** do not change it.
+Open **More**, then **Customize**, to choose a court color preset (Classic, Park green, Pro purple, Red clay, Night session) or set custom court, kitchen, surround, and button colors. A warning appears if a choice would make names or buttons hard to read. Upload a **club logo** for the top of the page and a **court logo** that appears on every court. Logos are resized in the browser and stored as small images. Branding is saved in this browser, separately from the session, so **Reset session** and **Undo** do not change it.
 
 While QR check-in is on, players see the same colors and logos on the player page. Phones download the branding once, and again only after the organizer changes it. For a separate deployment, run `supabase/branding.sql` after `player-page.sql`; without it, the organizer page still shows the branding but players see the default look.
 
@@ -72,13 +85,13 @@ Open **Custom lineup**, select four distinct waiting players (first two on Team 
 
 ## Optional session QR check-in
 
-QR check-in is connected to Supabase on the hosted site. For a separate deployment, follow the [Supabase setup](supabase/SETUP.md). Use **Enable QR check-in** on the hosted site. Arriving players scan the QR and enter a nickname with no login. Keep the organizer page open: new arrivals are appended automatically, usually within five seconds. Close check-in when finished; each QR also expires after 12 hours. Local manual entry remains available without Supabase or internet.
+QR check-in is connected to Supabase on the hosted site. For a separate deployment, follow the [Supabase setup](supabase/SETUP.md). Use **Show a QR code to scan** on the hosted site (in step 1 of a new session, or in the **Players** tab later). While check-in is on, the QR code floats in the bottom right corner of the screen so it can be scanned from anywhere on the page. **Hide** tucks it into a small **Show QR** button, **Enlarge** makes it bigger for scanning from a distance, and the choice is remembered on that device. On a phone it starts tucked away so it never covers the court buttons. Arriving players scan the QR and enter a nickname with no login. Keep the organizer page open: new arrivals are appended automatically, usually within five seconds. Close check-in when finished; each QR also expires after 12 hours. Local manual entry remains available without Supabase or internet.
 
 Development checks: run `npm ci && npm test` with Google Chrome installed. When you change a script or stylesheet, bump its `?v=` value in `app.html`, `player.html`, `join.html`, and `index.html` so browsers do not combine a new page with a stale cached script. Tests use a local PostgreSQL-compatible PGlite database and isolated browsers; no live Supabase account or production player data is used.
 
 ## Save session history
 
-Use **Save session** to take a named snapshot of the current players, completed game counts, queue, courts, and custom lineup. Each click creates a separate snapshot. Saved sessions survive **Reset session**. Use **View** to review a snapshot, or **Download copy** to export it as JSON. Viewing does not replace the current queue.
+In the **Saved sessions** tab, use **Save session** to take a named snapshot of the current players, completed game counts, queue, courts, and custom lineup. Each click creates a separate snapshot. Saved sessions survive **Reset session**. Use **View** to review a snapshot, or **Download copy** to export it as JSON. Viewing does not replace the current queue.
 
 Snapshots save locally first and then back up to Supabase when available. Offline saves are labeled **Browser copy only** and provide **Back up online** for retrying. **Refresh saved list** retrieves cloud entries associated with this browser's private archive key. Clearing browser data loses that key; download important sessions beforehand. There is no account-based recovery or cross-device archive list. QR credentials are excluded from snapshots. Cloud archives are separate from expiring QR sessions and are not removed when QR sessions expire. Up to 100 snapshots per browser key can be backed up online.
 

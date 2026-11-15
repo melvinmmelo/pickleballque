@@ -53,8 +53,8 @@ assert.equal(await g.locator('#leave-box').isHidden(),true);assert.equal(await g
 // 4. Records: reload keeps Left, re-adding the same name points to Return, and a saved snapshot shows who left.
 await p.reload();assert.deepEqual((await names(p)).left,['Fay']);
 await p.locator('#nickname').fill('fay');await p.locator('#add-form button').click();assert.match(await p.locator('#nickname').evaluate(i=>i.validationMessage),/left earlier\. Use Return/);
-await p.locator('#archive-name').fill('Leave test');await p.locator('#archive-save').click();await p.getByText(/Saved in this browser/).waitFor();
-await p.getByRole('button',{name:'View Leave test',exact:true}).click();assert.match(await p.locator('#archive-content').textContent(),/FayLeft|Fay1Left/);await p.locator('#archive-dismiss').click();
+await p.locator('#tab-saved').click();await p.locator('#archive-name').fill('Leave test');await p.locator('#archive-save').click();await p.getByText(/Saved in this browser/).waitFor();
+await p.locator('#tab-saved').click();await p.getByRole('button',{name:'View Leave test',exact:true}).click();assert.match(await p.locator('#archive-content').textContent(),/FayLeft|Fay1Left/);await p.locator('#archive-dismiss').click();
 await p.setViewportSize({width:390,height:844});await p.waitForFunction(()=>!document.querySelector('.flying'));assert(await p.evaluate(()=>document.documentElement.scrollWidth<=innerWidth));
 
 // 5. A database without the leave migration: the phone explains instead of failing.

@@ -39,7 +39,7 @@ assert.equal(await p.evaluate(()=>localStorage.getItem('sideout-queue-v1-unreada
 // 5. A saved session this page cannot read survives saving a new one.
 const odd={id:'x',name:'From a newer version',savedAt:'2026-11-01T00:00:00.000Z',snapshot:{players:'?'}};
 await p.evaluate(odd=>localStorage.setItem('sideout-archives-v1',JSON.stringify([odd])),odd);await p.reload();
-await p.locator('#archive-name').fill('Tonight');await p.locator('#archive-save').click();await p.getByText(/Saved in this browser/).waitFor();
+await p.locator('#tab-saved').click();await p.locator('#archive-name').fill('Tonight');await p.locator('#archive-save').click();await p.getByText(/Saved in this browser/).waitFor();
 const stored=await p.evaluate(()=>JSON.parse(localStorage.getItem('sideout-archives-v1')));assert.deepEqual(stored.map(a=>a.name).sort(),['From a newer version','Tonight']);
 await p.context().close();}
 

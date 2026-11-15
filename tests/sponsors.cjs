@@ -29,7 +29,7 @@ const onAlt=p=>p.locator('#sponsor-strip .sponsor-slide.on img.main').getAttribu
 const p=await page(await context(db));await p.goto(base);
 for(const n of ['Ali','Bea','Cal','Dee']){await p.locator('#nickname').fill(n);await p.locator('#add-form button').click();}
 assert.equal(await p.locator('#sponsor-strip').isHidden(),true,'No banners, no strip');
-await p.locator('#customize').click();
+await p.locator('#more').click();await p.locator('#customize').click();
 await p.locator('#sponsor-add input').setInputFiles(banner('acme-paddles.png'));await p.getByText('Banner added. Check the sponsor name below.').waitFor();
 assert.equal(await p.locator('.sponsor-row input').first().inputValue(),'acme paddles');
 await p.getByLabel('Sponsor name for banner 1').fill('Acme Paddles');await p.getByLabel('Sponsor name for banner 1').press('Tab');await p.getByText('Sponsor name saved.').waitFor();
@@ -57,11 +57,11 @@ const g=await page(await context(db));await g.goto(link);await g.locator('#spons
 assert.deepEqual(await g.locator('#sponsor-strip img.main').evaluateAll(i=>i.map(x=>x.alt)),['Bay Bank','Acme Paddles']);
 for(let i=0;i<3;i++){await g.locator('#refresh').click();await g.waitForTimeout(300);}
 assert.equal(calls.filter(m=>m==='sideout_sponsors').length,1,'Banners are downloaded once, not on every refresh');
-await p.locator('#customize').click();await p.getByRole('button',{name:'Remove Bay Bank',exact:true}).click();await p.getByRole('button',{name:'Done',exact:true}).click();
+await p.locator('#more').click();await p.locator('#customize').click();await p.getByRole('button',{name:'Remove Bay Bank',exact:true}).click();await p.getByRole('button',{name:'Done',exact:true}).click();
 await g.waitForFunction(()=>document.querySelectorAll('#sponsor-strip .sponsor-slide').length===1,null,{timeout:20000});assert.equal(calls.filter(m=>m==='sideout_sponsors').length,2);
 await g.setViewportSize({width:390,height:844});assert(await g.evaluate(()=>document.documentElement.scrollWidth<=innerWidth));
 await p.setViewportSize({width:390,height:844});await p.waitForFunction(()=>!document.querySelector('.flying'));assert(await p.evaluate(()=>document.documentElement.scrollWidth<=innerWidth));
-await p.locator('#customize').click();assert(await p.evaluate(()=>document.documentElement.scrollWidth<=innerWidth));await p.getByRole('button',{name:'Done',exact:true}).click();
+await p.locator('#more').click();await p.locator('#customize').click();assert(await p.evaluate(()=>document.documentElement.scrollWidth<=innerWidth));await p.getByRole('button',{name:'Done',exact:true}).click();
 
 // 4. A database without the sponsors migration: no error on the organizer page, no strip on phones.
 const o=await page(await context(oldDb));await o.goto(base);await o.locator('#nickname').fill('Zed');await o.locator('#add-form button').click();

@@ -55,7 +55,7 @@ await eve.reload();await eve.locator('.pick.mine').waitFor({timeout:15000});asse
 
 // 3b. The organizer switches Bea and Cal mid-game: new teams, so guesses start over on the organizer page and on phones.
 // A score being typed on the organizer page travels with the court and must not upset the phones.
-await p.locator('[data-court="1"] .result .score').first().fill('3');
+await p.locator('[data-court="1"]').getByRole('button',{name:'Add score',exact:true}).click();await p.locator('[data-court="1"] .result .score').first().fill('3');
 await p.locator('.player-chip',{hasText:/^Bea$/}).click();await p.locator('.player-chip',{hasText:/^Cal$/}).click();
 await p.waitForFunction(()=>document.querySelector('[data-court="1"] .guess-label')?.textContent==='No guesses yet on who wins',null,{timeout:15000});
 await eve.waitForFunction(()=>[...document.querySelectorAll('.pick-name')].map(x=>x.textContent).join()==='Ali & Cal,Bea & Dee'&&!document.querySelector('.pick.mine'),null,{timeout:20000});

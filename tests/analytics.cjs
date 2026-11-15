@@ -27,8 +27,8 @@ const kinds=()=>sent.map(e=>e.kind);const settle=()=>new Promise(r=>setTimeout(r
 const p=await page(await context(db));await p.waitForFunction(()=>typeof intro!=='undefined'&&intro===null);
 for(const n of ['Alicia','Bernardo','Celestine','Dominga','Evangeline']){await p.locator('#nickname').fill(n);await p.locator('#add-form button').click();}
 await p.locator('.game-action').click();await p.getByRole('button',{name:'Finish game & rotate',exact:true}).click();await p.locator('#add-court').click();
-await p.locator('#customize').click();await p.locator('.swatch',{hasText:'Pro purple'}).click();await p.getByRole('button',{name:'Done',exact:true}).click();
-await p.locator('#archive-name').fill('Analytics test');await p.locator('#archive-save').click();await p.locator('#archive-message').filter({hasText:/saved in this browser/i}).waitFor();
+await p.locator('#more').click();await p.locator('#customize').click();await p.locator('.swatch',{hasText:'Pro purple'}).click();await p.getByRole('button',{name:'Done',exact:true}).click();
+await p.locator('#tab-saved').click();await p.locator('#archive-name').fill('Analytics test');await p.locator('#archive-save').click();await p.locator('#archive-message').filter({hasText:/saved in this browser/i}).waitFor();
 await p.waitForTimeout(1200);await p.evaluate(()=>SideoutStats.report());await settle();
 for(const k of ['visit','player_added','game_finished','court_added','brand_changed','session_saved','active'])assert(kinds().includes(k),'missing '+k);
 assert.equal(sent.filter(e=>e.kind==='player_added').length,5);assert.equal(sent.find(e=>e.kind==='brand_changed').detail,'preset');
@@ -36,16 +36,16 @@ const payload=JSON.stringify(sent);for(const n of ['Alicia','Bernardo','Analytic
 assert(sent.every(e=>e.page==='organizer'&&/^[0-9a-f-]{36}$/.test(e.device)&&/^[0-9a-f-]{36}$/.test(e.visit)));assert(sent.find(e=>e.kind==='active').seconds>=1);
 
 // 3. QR check-in from a phone: the player page sends its own visit and check-in.
-await p.locator('#share-start').click();await p.locator('#share-details').waitFor({state:'visible'});await p.evaluate(()=>SideoutStats.report());await settle();assert(kinds().includes('qr_started'));
+await p.locator('#tab-players').click();await p.locator('#share-start').click();await p.locator('#share-details').waitFor({state:'visible'});await p.evaluate(()=>SideoutStats.report());await settle();assert(kinds().includes('qr_started'));
 const g=await page(await context(db),await p.locator('#share-link').inputValue());await g.locator('#join-name').fill('Fernanda');await g.locator('#join-button').click();await g.getByText(/checked in as Fernanda/).waitFor();
 await g.evaluate(()=>SideoutStats.report());await settle();assert(sent.some(e=>e.page==='player'&&e.kind==='visit'));assert(sent.some(e=>e.page==='player'&&e.kind==='checked_in'));assert(!JSON.stringify(sent).includes('Fernanda'));
 
 // 4. Turning stats off stops everything and forgets the ID; turning on starts fresh.
 const before=sent.length;assert.equal(await p.locator('#stats-toggle').textContent(),'Turn off anonymous usage stats');
-const oldDevice=await p.evaluate(()=>localStorage.getItem('sideout-device'));await p.locator('#stats-toggle').click();
+const oldDevice=await p.evaluate(()=>localStorage.getItem('sideout-device'));await p.locator('#more').click();await p.locator('#stats-toggle').click();
 assert.equal(await p.evaluate(()=>localStorage.getItem('sideout-device')),null);await p.locator('#nickname').fill('Gregorio');await p.locator('#add-form button').click();await p.evaluate(()=>SideoutStats.report());await p.reload();await settle();
 assert.equal(sent.length,before,'Nothing sent after turning stats off');assert.equal(await p.locator('#stats-toggle').textContent(),'Turn on anonymous usage stats');
-await p.locator('#stats-toggle').click();await p.reload();await settle();await p.evaluate(()=>SideoutStats.report());await settle();
+await p.locator('#more').click();await p.locator('#stats-toggle').click();await p.reload();await settle();await p.evaluate(()=>SideoutStats.report());await settle();
 assert(sent.length>before);assert.notEqual(sent[sent.length-1].device,oldDevice,'A new anonymous ID after turning back on');
 
 // 5. Browser privacy signal and localhost previews send nothing.

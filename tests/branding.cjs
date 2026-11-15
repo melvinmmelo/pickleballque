@@ -31,7 +31,7 @@ const cssVar=(p,name)=>p.evaluate(n=>getComputedStyle(document.documentElement).
 // 2. Organizer: preset, custom color warning, logo uploads, persistence, and Reset session keeping branding.
 const p=await page(await context(db));await p.goto(base);
 for(const n of ['Ali','Bea','Cal','Dee','Eve']){await p.locator('#nickname').fill(n);await p.locator('#add-form button').click();}
-await p.locator('#customize').click();await p.locator('#brand-dialog').waitFor({state:'visible'});
+await p.locator('#more').click();await p.locator('#customize').click();await p.locator('#brand-dialog').waitFor({state:'visible'});
 await p.locator('.swatch',{hasText:'Pro purple'}).click();assert.equal(await cssVar(p,'--court'),'#4a3d8f');
 await p.locator('#brand-pickers input[name=court]').fill('#dddddd');assert.match(await p.locator('#brand-warning').textContent(),/hard to read/);
 await p.locator('.swatch',{hasText:'Pro purple'}).click();assert.equal(await p.locator('#brand-warning').textContent(),'');
@@ -41,7 +41,7 @@ await p.locator('[data-slot=courtLogo] input[type=file]').setInputFiles({name:'c
 await p.getByRole('button',{name:'Done',exact:true}).click();
 assert.equal(await p.locator('#club-logo').isVisible(),true);assert.match(await p.locator('#club-logo').getAttribute('src'),/^data:image\/(webp|png);base64,/);
 await p.locator('#add-court').click();assert.equal(await p.locator('.court .court-logo').count(),2);
-await p.locator('#reset').click();await p.reload();
+await p.locator('#more').click();await p.locator('#reset').click();await p.reload();
 assert.equal(await cssVar(p,'--court'),'#4a3d8f');assert.equal(await p.locator('#club-logo').isVisible(),true);assert.equal(await p.locator('.court .court-logo').count(),1);
 assert.equal(await p.evaluate(()=>state.players.length),0,'Reset session cleared players but kept branding');
 
@@ -53,7 +53,7 @@ const g=await page(await context(db));await g.goto(link);await g.locator('#club-
 assert.equal(await cssVar(g,'--court'),'#4a3d8f');
 for(let i=0;i<3;i++){await g.locator('#refresh').click();await g.waitForTimeout(300);}
 assert.equal(calls.filter(m=>m==='sideout_brand').length,1,'Logos are downloaded once, not on every refresh');
-await p.locator('#customize').click();await p.locator('.swatch',{hasText:'Red clay'}).click();await p.getByRole('button',{name:'Done',exact:true}).click();
+await p.locator('#more').click();await p.locator('#customize').click();await p.locator('.swatch',{hasText:'Red clay'}).click();await p.getByRole('button',{name:'Done',exact:true}).click();
 await g.waitForFunction(()=>getComputedStyle(document.documentElement).getPropertyValue('--court').trim()==='#a4473a',null,{timeout:20000});
 assert.equal(calls.filter(m=>m==='sideout_brand').length,2);
 await g.locator('#join-name').fill('Fay');await g.locator('#join-button').click();await p.waitForFunction(()=>state.players.length===6,null,{timeout:15000});await p.locator('.game-action').first().click();
